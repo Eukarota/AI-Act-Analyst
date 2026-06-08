@@ -64,7 +64,7 @@ _JUDGE_PROMPT = (
     "You are reviewing an AI-Act compliance document produced by an automated agent.\n"
     "Score each criterion on a 1-4 scale, where:\n"
     "  1 = absent or wrong; 2 = partial; 3 = correct, light detail; 4 = correct and cited.\n"
-    "Reply with a single JSON object: {\"scores\": {\"<criterion>\": <int>, ...}}.\n"
+    'Reply with a single JSON object: {{"scores": {{"<criterion>": <int>, ...}}}}.\n'
     "Do not include any other text.\n\n"
     "Document kind: {kind}\n"
     "Title: {title}\n"

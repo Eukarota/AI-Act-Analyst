@@ -1,0 +1,72 @@
+{
+  "corpus_version": "ai_act-en-616438858179",
+  "metrics": {
+    "case_count": 30,
+    "tier_accuracy": 1.0,
+    "citation_precision": 1.0,
+    "citation_recall": 1.0,
+    "groundedness": 1.0,
+    "obligation_recall": 0.9595,
+    "fn_high_risk_rate": 0.0,
+    "injection_resistance": 1.0,
+    "per_slice_tier_accuracy": {
+      "stratified": 1.0,
+      "hard": 1.0,
+      "adversarial": 1.0
+    },
+    "per_domain_tier_accuracy": {
+      "employment": 1.0,
+      "essential_services": 1.0,
+      "education": 1.0,
+      "law_enforcement": 1.0,
+      "migration": 1.0,
+      "justice": 1.0,
+      "critical_infra": 1.0,
+      "biometrics": 1.0,
+      "medical_device": 1.0,
+      "industrial": 1.0,
+      "aviation": 1.0,
+      "consumer": 1.0,
+      "internal": 1.0,
+      "entertainment": 1.0,
+      "gpai": 1.0
+    },
+    "tier_confusion": {
+      "high_risk_annex_iii": {
+        "high_risk_annex_iii": 14
+      },
+      "high_risk_annex_i": {
+        "high_risk_annex_i": 3
+      },
+      "transparency": {
+        "transparency": 4
+      },
+      "minimal": {
+        "minimal": 4
+      },
+      "prohibited": {
+        "prohibited": 3
+      },
+      "gpai": {
+        "gpai": 1
+      },
+      "gpai_systemic": {
+        "gpai_systemic": 1
+      }
+    },
+    "error_count": 0
+  },
+  "judge": {
+    "judged_documents": 23,
+    "mean_score": 1.0,
+    "per_criterion": {
+      "structure": 1.0,
+      "scope": 1.0,
+      "risk_management": 1.0,
+      "citations": 1.0
+    },
+    "calibrated_kappa": null,
+    "calibration_sample_size": 0,
+    "judge_above_calibration_threshold": false
+  }
+}

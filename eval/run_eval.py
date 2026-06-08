@@ -40,7 +40,7 @@ from backend.adapters.fake_llm import FakeLLM
 from backend.adapters.in_memory_store import InMemoryVectorStore
 from backend.agent.dependencies import AgentBudgets, AgentDependencies
 from backend.agent.graph import run_assessment
-from backend.agent.state import AgentState, Citation, SystemProfile
+from backend.agent.state import AgentState, Citation, DraftedDocument, SystemProfile
 from backend.prompts.loader import default_registry
 from backend.rag.retrieve import HybridRetriever
 from eval.judge import judge_documents
@@ -262,9 +262,7 @@ def _summarise_smoke(results: Iterable[CaseRunResult]) -> dict[str, Any]:
     for r in results_list:
         expected = set(r.case.expected_articles)
         if expected:
-            article_recalls.append(
-                len(expected & set(r.actual_articles)) / len(expected)
-            )
+            article_recalls.append(len(expected & set(r.actual_articles)) / len(expected))
         else:
             article_recalls.append(1.0)
     avg_recall = sum(article_recalls) / total if total else 0.0
@@ -280,7 +278,9 @@ def _summarise_smoke(results: Iterable[CaseRunResult]) -> dict[str, Any]:
                 "error": r.error,
             }
             for r in results_list
-            if not r.tier_match or r.error or (set(r.case.expected_articles) - set(r.actual_articles))
+            if not r.tier_match
+            or r.error
+            or (set(r.case.expected_articles) - set(r.actual_articles))
         ],
     }
 
@@ -331,9 +331,7 @@ def _write_gold_reports(
     payload = {
         "corpus_version": corpus_version,
         "metrics": metrics.to_json(),
-        "gates": [
-            {"name": g.name, "passed": g.passed, "value": round(g.value, 4)} for g in gates
-        ],
+        "gates": [{"name": g.name, "passed": g.passed, "value": round(g.value, 4)} for g in gates],
         "judge": judge,
         "baseline_regressions": baseline_regressions,
         "cases": [
@@ -464,16 +462,11 @@ async def amain() -> int:
     metrics = compute_metrics(outcomes)
     gates = evaluate_gates(metrics)
 
-    all_drafted: list = []
-    for run in runs:
-        # Re-render the case so we can collect drafted_documents from the
-        # final state. The graph is deterministic given fixed scripted_extraction,
-        # so a second pass produces the same docs.
-        pass
-    # The judge runs on the documents already produced. To avoid running the
-    # graph twice, we capture documents during the first pass via a side
-    # channel: rebuild a small helper that re-runs only the cases that
-    # actually produced docs (anything tier != minimal/prohibited).
+    # The judge runs against the drafted documents produced by the graph.
+    # We re-run the cases in a tight second pass so the runs list above stays
+    # the source of truth for the per-case metrics; the graph is deterministic
+    # at temperature 0 with scripted extractions, so the second pass produces
+    # the same documents the first pass already saw.
     judge_payload: dict[str, Any] = {
         "judged_documents": 0,
         "mean_score": 0.0,
@@ -531,11 +524,11 @@ async def amain() -> int:
 
 async def _collect_drafted_docs(
     cases: list[EvalCase], deps: AgentDependencies
-) -> list:
+) -> list[DraftedDocument]:
     """Second pass that yields the drafted documents per case for the judge."""
     fake_llm: FakeLLM = deps.llm  # type: ignore[assignment]
     prompts = deps.prompts
-    docs: list = []
+    docs: list[DraftedDocument] = []
     for case in cases:
         rendered = prompts.render(
             "intake_extract_attributes",

@@ -18,6 +18,7 @@ from backend.agent.state import Citation
 from backend.api.run_store import InMemoryRunStore, PostgresRunStore, RunStore
 from backend.api.settings import ApiSettings
 from backend.prompts.loader import default_registry
+from backend.rag.retrieval_cache import CachingRetriever
 from backend.rag.retrieve import HybridRetriever
 from regulations.ai_act import AiActRegulation
 from regulations.ai_act.corpus.loader import AiActChunkerConfig, AiActCorpusLoader
@@ -57,7 +58,12 @@ async def build_wired_app(settings: ApiSettings | None = None) -> WiredApp:
         for (chunk_text, citation, scope), vector in zip(triples, vectors, strict=True)
     ]
     await store.upsert(rows)
-    retriever = HybridRetriever(store=store, embedder=embedder)
+    base_retriever = HybridRetriever(store=store, embedder=embedder)
+    retriever = CachingRetriever(
+        inner=base_retriever,
+        corpus_version=loader.corpus_version(),
+        max_entries=512,
+    )
 
     llm = SelfHostedVLLM(
         base_url=cfg.llm_url,

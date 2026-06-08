@@ -13,20 +13,23 @@ from typing import Annotated
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 from backend.agent.state import AgentState, SystemProfile
 from backend.agent.trace import TRACE_SCHEMA_VERSION
 from backend.api.assess_runner import AssessmentRunner
+from backend.api.drift import DriftTracker
 from backend.api.run_store import RunStore
 from backend.api.schemas import (
     AssessRequest,
     AssessResponse,
+    DriftResponse,
     ErrorResponse,
     HealthResponse,
     ReadyResponse,
     TraceResponse,
 )
+from backend.api.telemetry import Telemetry, get_telemetry
 
 _log = structlog.get_logger(__name__)
 
@@ -45,6 +48,20 @@ def get_run_store(request: Request) -> RunStore:
     if run_store is None:
         raise RuntimeError("RunStore not wired on app.state.run_store")
     return run_store  # type: ignore[no-any-return]
+
+
+def get_telemetry_dep(request: Request) -> Telemetry:
+    telemetry = getattr(request.app.state, "telemetry", None)
+    if telemetry is None:
+        return get_telemetry()
+    return telemetry  # type: ignore[no-any-return]
+
+
+def get_drift_tracker(request: Request) -> DriftTracker:
+    drift = getattr(request.app.state, "drift", None)
+    if drift is None:
+        raise RuntimeError("DriftTracker not wired on app.state.drift")
+    return drift  # type: ignore[no-any-return]
 
 
 @router.get("/health", response_model=HealthResponse, tags=["service"])
@@ -132,3 +149,40 @@ async def get_trace(
             detail={"code": "trace_not_found", "message": f"no trace for run_id={run_id}"},
         )
     return TraceResponse(run_id=run_id, schema_version=TRACE_SCHEMA_VERSION, events=events)
+
+
+@router.get(
+    "/metrics",
+    response_class=PlainTextResponse,
+    tags=["service"],
+    responses={200: {"content": {"text/plain": {"example": "# TYPE ..."}}}},
+)
+async def metrics(
+    telemetry: Annotated[Telemetry, Depends(get_telemetry_dep)],
+) -> PlainTextResponse:
+    """Prometheus 0.0.4 text format. Scrape this from kube-prometheus / Grafana Cloud."""
+    return PlainTextResponse(telemetry.render_prometheus(), media_type="text/plain; version=0.0.4")
+
+
+@router.get(
+    "/drift",
+    response_model=DriftResponse,
+    tags=["service"],
+)
+async def drift(
+    tracker: Annotated[DriftTracker, Depends(get_drift_tracker)],
+) -> DriftResponse:
+    """
+    Rolling input-domain + tier-mix distributions over a sliding window.
+
+    Phase 10 surface for the drift dashboard. Compared against the eval gold
+    set's domain / tier mix to flag distribution shifts that warrant a
+    re-calibration of the rules layer or the LLM-as-judge.
+    """
+    snapshot = tracker.snapshot()
+    return DriftResponse(
+        window_size=snapshot.window_size,
+        sample_count=snapshot.sample_count,
+        input_domain=snapshot.input_domain,
+        tier_mix=snapshot.tier_mix,
+    )

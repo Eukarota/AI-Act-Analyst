@@ -1,6 +1,6 @@
 .PHONY: help install lint type test smoke index-corpus dev-backend dev-backend-fake \
-        dev-frontend frontend-build frontend-lint eval clean up-db down-db \
-        up-llm down-llm down integration-test
+        dev-frontend frontend-build frontend-lint eval eval-smoke eval-freeze \
+        reindex-and-eval clean up-db down-db up-llm down-llm down integration-test
 
 help:
 	@echo "Boussole targets:"
@@ -17,7 +17,9 @@ help:
 	@echo "  dev-backend       Run FastAPI locally against Postgres run-store (Phase 7)"
 	@echo "  dev-backend-fake  Run FastAPI locally against the in-memory run-store (no DB)"
 	@echo "  dev-frontend      Run Next.js dev server (Phase 8)"
-	@echo "  eval              Run the eval suite against the frozen baseline (Phase 9)"
+	@echo "  eval-smoke        Run the 5-case smoke eval (fast CI sanity check)"
+	@echo "  eval              Run the gold eval (§12.1 gates) against the frozen baseline"
+	@echo "  eval-freeze       Re-freeze the baseline at the current corpus_version"
 
 install:
 	uv sync --all-extras
@@ -73,9 +75,18 @@ frontend-lint:
 	cd frontend && npm run lint
 	cd frontend && npm run typecheck
 
+eval-smoke:
+	uv run python eval/run_eval.py --regulation ai_act --smoke --report
+
 eval:
-	uv run python eval/run_eval.py --regulation ai_act \
+	uv run python eval/run_eval.py --regulation ai_act --gold \
 		--baseline eval/baselines/$$(cat regulations/ai_act/corpus/VERSION).json --report
+
+eval-freeze:
+	uv run python eval/run_eval.py --regulation ai_act --gold --freeze-baseline --report
+
+reindex-and-eval:
+	uv run python scripts/reindex_and_eval.py --regulation ai_act --source local --target memory
 
 clean:
 	rm -rf .venv .ruff_cache .mypy_cache .pytest_cache **/__pycache__ dist build

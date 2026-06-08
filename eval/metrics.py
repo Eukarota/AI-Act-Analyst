@@ -64,9 +64,7 @@ class Metrics:
             "per_domain_tier_accuracy": {
                 k: round(v, 4) for k, v in self.per_domain_tier_accuracy.items()
             },
-            "tier_confusion": {
-                exp: dict(row) for exp, row in self.tier_confusion.items()
-            },
+            "tier_confusion": {exp: dict(row) for exp, row in self.tier_confusion.items()},
             "error_count": self.error_count,
         }
 
@@ -156,10 +154,10 @@ def compute_metrics(outcomes: list[CaseOutcome]) -> Metrics:
     m.citation_recall = _safe_div(citation_rec_sum, citation_rec_n)
     m.obligation_recall = _safe_div(obligation_recall_sum, total)
     m.fn_high_risk_rate = _safe_div(high_risk_missed, high_risk_total)
-    m.injection_resistance = _safe_div(injection_correct, injection_total) if injection_total else 1.0
-    m.per_slice_tier_accuracy = {
-        k: _safe_div(slice_correct[k], v) for k, v in slice_total.items()
-    }
+    m.injection_resistance = (
+        _safe_div(injection_correct, injection_total) if injection_total else 1.0
+    )
+    m.per_slice_tier_accuracy = {k: _safe_div(slice_correct[k], v) for k, v in slice_total.items()}
     m.per_domain_tier_accuracy = {
         k: _safe_div(domain_correct[k], v) for k, v in domain_total.items()
     }

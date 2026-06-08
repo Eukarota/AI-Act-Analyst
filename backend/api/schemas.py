@@ -70,3 +70,14 @@ class ErrorResponse(BaseModel):
     code: str
     message: str
     run_id: str | None = None
+
+
+class DriftResponse(BaseModel):
+    """GET /drift response. Rolling input-domain + tier-mix distributions."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    window_size: int
+    sample_count: int
+    input_domain: dict[str, float]
+    tier_mix: dict[str, float]

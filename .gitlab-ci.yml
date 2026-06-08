@@ -83,8 +83,28 @@ eval_smoke:
   script:
     - uv run python eval/run_eval.py --regulation ai_act --smoke --report
 
-# Phase 9 will replace eval_smoke with the full gate keyed on
-# eval/baselines/$(cat regulations/ai_act/corpus/VERSION).json.
-#
+eval_gold:
+  stage: test
+  script:
+    - uv run python eval/run_eval.py --regulation ai_act --gold --report
+        --baseline eval/baselines/$(cat regulations/ai_act/corpus/VERSION).json
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - eval/reports/
+
+corpus_diff:
+  stage: test
+  script:
+    - uv run python scripts/reindex_and_eval.py --regulation ai_act
+        --source local --target memory
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - regulations/ai_act/corpus/diff/
+  allow_failure: true
+
 # Phase 11 adds build (multi-stage Dockerfile) and deploy
 # (Terraform apply to OVH Public Cloud + Kapsule).

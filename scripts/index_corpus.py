@@ -33,6 +33,13 @@ from backend.adapters.in_memory_store import InMemoryVectorStore
 from backend.adapters.pgvector_store import PgVectorStore
 from backend.agent.state import Citation
 from backend.ports.embedder import Embedder
+from backend.rag.corpus_diff import (
+    build_snapshot,
+    diff_snapshots,
+    read_snapshot,
+    render_markdown,
+    write_snapshot,
+)
 from regulations.ai_act.corpus.loader import AiActChunkerConfig, AiActCorpusLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -157,33 +164,51 @@ async def _emit_diff(
     version: str, triples: list[tuple[str, Citation, str | None]]
 ) -> dict[str, int]:
     """
-    Compare the new corpus_version against the previously stamped one.
+    Compute the per-chunk diff vs the previous snapshot and persist both.
 
-    Writes a JSON diff to regulations/ai_act/corpus/diff/<version>.json with
-    counts of added / removed / unchanged citation keys. The full set
-    comparison is deferred until Phase 9 needs per-chunk diffs; for Phase 2
-    the version-stamp diff is sufficient to detect a no-op re-index.
+    Reads the previous snapshot from regulations/ai_act/corpus/diff/<prev>.snapshot.json
+    (when present), writes the new snapshot, and emits diff JSON + Markdown
+    grouped by Article / Annex / Recital for compliance review.
     """
     version_path = REPO_ROOT / "regulations" / "ai_act" / "corpus" / "VERSION"
     diff_dir = REPO_ROOT / "regulations" / "ai_act" / "corpus" / "diff"
     diff_dir.mkdir(parents=True, exist_ok=True)
 
     previous = version_path.read_text(encoding="utf-8").strip() if version_path.exists() else None
-    changed = previous != version
+    previous_snapshot_path = (
+        diff_dir / f"{previous}.snapshot.json" if previous else diff_dir / "__none__.snapshot.json"
+    )
+    new_snapshot_path = diff_dir / f"{version}.snapshot.json"
 
-    diff = {
-        "added": len(triples) if previous is None else (len(triples) if changed else 0),
-        "removed": 0,
-        "unchanged": 0 if changed else len(triples),
-    }
+    new_snapshot = build_snapshot(triples)
+    previous_snapshot = read_snapshot(previous_snapshot_path)
+
+    diff = diff_snapshots(
+        previous_version=previous,
+        new_version=version,
+        previous=previous_snapshot,
+        new=new_snapshot,
+    )
+
+    write_snapshot(new_snapshot_path, new_snapshot)
     (diff_dir / f"{version}.json").write_text(
         json.dumps(
-            {"previous_version": previous, "new_version": version, "counts": diff},
+            {
+                "previous_version": diff.previous_version,
+                "new_version": diff.new_version,
+                "counts": diff.counts(),
+                "added_keys": list(diff.added_keys),
+                "removed_keys": list(diff.removed_keys),
+                "changed_keys": list(diff.changed_keys),
+                "per_article_changes": diff.per_article_changes,
+                "changed_article_buckets": list(diff.changed_article_buckets),
+            },
             indent=2,
         ),
         encoding="utf-8",
     )
-    return diff
+    (diff_dir / f"{version}.md").write_text(render_markdown(diff), encoding="utf-8")
+    return diff.counts()
 
 
 def _write_version_file(regulation: str, version: str) -> None:

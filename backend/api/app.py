@@ -14,10 +14,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from backend.api.assess_runner import AssessmentRunner
+from backend.api.drift import DriftTracker
 from backend.api.factories import WiredApp, build_wired_app
 from backend.api.logging import configure_logging
 from backend.api.routes import router
 from backend.api.settings import ApiSettings
+from backend.api.telemetry import Telemetry
 
 
 def create_app(*, wired: WiredApp | None = None) -> FastAPI:
@@ -38,9 +40,19 @@ def create_app(*, wired: WiredApp | None = None) -> FastAPI:
             configure_logging(level=wired.settings.log_level)
             built = wired
 
+        telemetry = Telemetry()
+        drift = DriftTracker()
+
         app.state.wired = built
         app.state.run_store = built.run_store
-        app.state.runner = AssessmentRunner(deps=built.deps, run_store=built.run_store)
+        app.state.telemetry = telemetry
+        app.state.drift = drift
+        app.state.runner = AssessmentRunner(
+            deps=built.deps,
+            run_store=built.run_store,
+            telemetry=telemetry,
+            drift=drift,
+        )
         try:
             yield
         finally:

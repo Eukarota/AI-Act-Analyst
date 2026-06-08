@@ -9,6 +9,7 @@ the identical check" -- enforced by import, never duplicated.
 
 from __future__ import annotations
 
+import time
 from datetime import UTC, datetime
 from typing import Any
 
@@ -23,13 +24,16 @@ from backend.agent.errors import (
 from backend.agent.graph import run_assessment
 from backend.agent.report import AssessmentReport, ReportStatus
 from backend.agent.state import AgentState, RetrievedPassage, RunManifest
+from backend.api.drift import DriftTracker
 from backend.api.run_store import RunStore
+from backend.api.telemetry import Telemetry, get_telemetry
 from backend.rag.grounding import (
     Claim,
     GroundingError,
     assert_grounded,
     citation_key,
 )
+from backend.rag.retrieval_cache import CachingRetriever
 
 _log = structlog.get_logger(__name__)
 
@@ -37,9 +41,18 @@ _log = structlog.get_logger(__name__)
 class AssessmentRunner:
     """Composes graph + manifest + grounding + persistence."""
 
-    def __init__(self, *, deps: AgentDependencies, run_store: RunStore) -> None:
+    def __init__(
+        self,
+        *,
+        deps: AgentDependencies,
+        run_store: RunStore,
+        telemetry: Telemetry | None = None,
+        drift: DriftTracker | None = None,
+    ) -> None:
         self.deps = deps
         self.run_store = run_store
+        self.telemetry = telemetry or get_telemetry()
+        self.drift = drift or DriftTracker()
 
     def _build_manifest(self, run_id: str) -> RunManifest:
         deps = self.deps
@@ -118,6 +131,7 @@ class AssessmentRunner:
         return passages
 
     async def run(self, initial_state: AgentState) -> AssessmentReport:
+        started = time.perf_counter()
         manifest = self._build_manifest(run_id=initial_state.run_id)
         log = _log.bind(run_id=initial_state.run_id)
         log.info(
@@ -126,6 +140,13 @@ class AssessmentRunner:
             model_id=manifest.model_id,
             prompt_set_version=manifest.prompt_set_version,
         )
+
+        cache_hits_before = 0
+        cache_misses_before = 0
+        retriever = self.deps.retriever
+        if isinstance(retriever, CachingRetriever):
+            cache_hits_before = retriever.stats.hits
+            cache_misses_before = retriever.stats.misses
 
         failures: list[TypedFailure] = []
         grounding_passed = False
@@ -204,11 +225,49 @@ class AssessmentRunner:
 
         trace_events: list[dict[str, Any]] = list(final_state.trace_events)
         await self.run_store.save(report, trace_events)
+
+        elapsed = time.perf_counter() - started
+        tokens_in, tokens_out = _tokens_from_trace(trace_events)
+        cache_hits = cache_misses = 0
+        if isinstance(retriever, CachingRetriever):
+            cache_hits = retriever.stats.hits - cache_hits_before
+            cache_misses = retriever.stats.misses - cache_misses_before
+        attributes = final_state.system_profile.attributes
+        input_domain = attributes.domain if attributes else None
+        tier = final_state.classification.tier.value if final_state.classification else None
+        self.telemetry.record_assessment(
+            status=status.value,
+            grounding_passed=grounding_passed,
+            latency_seconds=elapsed,
+            tokens_in=tokens_in,
+            tokens_out=tokens_out,
+            retrieval_cache_hits=cache_hits,
+            retrieval_cache_misses=cache_misses,
+            input_domain=input_domain,
+            tier=tier,
+        )
+        self.drift.record(domain=input_domain, tier=tier)
+
         log.info(
             "assess.persisted",
             status=status.value,
             grounding_passed=grounding_passed,
             obligation_count=len(report.obligations),
             retrieved_passage_count=len(report.retrieved_passages),
+            latency_seconds=round(elapsed, 4),
+            cache_hits=cache_hits,
+            cache_misses=cache_misses,
         )
         return report
+
+
+def _tokens_from_trace(trace_events: list[dict[str, Any]]) -> tuple[int, int]:
+    """Sum token counts across the trace. Source-of-truth is the LLM tool_return events."""
+    tokens_in = 0
+    tokens_out = 0
+    for event in trace_events:
+        if event.get("tokens_in"):
+            tokens_in += int(event["tokens_in"])
+        if event.get("tokens_out"):
+            tokens_out += int(event["tokens_out"])
+    return tokens_in, tokens_out

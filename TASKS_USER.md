@@ -96,11 +96,25 @@ I'll seed defaults; you confirm or override.
   Skim the rule modules under `regulations/ai_act/rules/` and flag anything
   that misreads the regulation — this is the load-bearing correctness piece.
 
-- [ ] **[USER] Review the eval gold set when Phase 9 lands**
-  *Why*: I'll seed ~30 stratified cases with best-effort labels marked
-  `draft: true`. The CLAUDE.md §12.1 gate of ≥ 60 cases plus a real
-  human-labelled review-set for the LLM-as-judge calibration both need
-  your sign-off. Until you sign off, the §12.1 gate is "soft".
+- [ ] **[USER] Review the eval gold set (Phase 9 has landed)**
+  30 cases now live at `eval/gold_set.jsonl`, every row marked `draft: true`,
+  stratified across all 7 tiers and 15 domains, plus a 3-case hard slice
+  (Annex III carve-out candidate, system built on GPAI, dual-use biometric)
+  and a 2-case adversarial slice (prompt injection in the description).
+  *Why*: I'm an engineer, not a lawyer. Skim the rows, flip `draft: false`
+  on the ones you confirm, edit the labels that miss, and add more until
+  you cross the §12.1 threshold of ≥ 60. The frozen baseline at
+  `eval/baselines/<corpus_version>.json` rebases whenever you re-freeze
+  (`uv run python eval/run_eval.py --regulation ai_act --gold --freeze-baseline`).
+
+- [ ] **[USER] Build the LLM-as-judge calibration set**
+  `eval/judge.py` runs an LLM judge on every drafted document but reports
+  `calibrated_kappa: null` until a human-labelled calibration set exists.
+  *How*: create `eval/judge_calibration.jsonl` with ≥ 20 rows of shape
+  `{"doc_kind": "...", "criterion": "...", "judge_score": 1-4, "human_score": 1-4}`,
+  scoring the same drafted documents the judge sees. Cohen's κ reports
+  automatically; if κ < 0.6 the rubric in `eval/judge.py` needs recalibration
+  before the judge can be cited publicly.
 
 - [ ] **[USER] French copy review for the frontend**
   *When*: Phase 8.
