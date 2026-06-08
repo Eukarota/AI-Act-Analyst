@@ -1,10 +1,14 @@
-# Boussole CI pipeline.
-# Phase 1 bootstrap: lint + type + unit tests. Subsequent phases add:
-#   Phase 2  -> grounding + retrieval tests
-#   Phase 4  -> rules tests
-#   Phase 6  -> regulation_conformance + eval smoke gate
-#   Phase 9  -> full eval gate (replaces smoke)
-#   Phase 11 -> build image + deploy to OVH
+# Boussole CI/CD pipeline.
+#
+# Stages:
+#   lint    -> ruff, ruff format check, mypy
+#   test    -> unit + grounding + rules + conformance + agent + api + frontend
+#              + eval smoke + eval gold (gates the rest of the pipeline)
+#   build   -> backend + frontend container images, pushed to the project registry
+#   deploy  -> kustomize apply to the OVH Kapsule cluster, manual trigger
+#
+# A failed eval_gold (or any earlier test stage) blocks build, which blocks deploy.
+# The deploy job is manual on main, never automatic, never on feature branches.
 
 stages:
   - lint
@@ -15,6 +19,11 @@ stages:
 variables:
   UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
   PYTHON_VERSION: "3.11"
+  REGISTRY_BACKEND: "$CI_REGISTRY_IMAGE/backend"
+  REGISTRY_FRONTEND: "$CI_REGISTRY_IMAGE/frontend"
+  DOCKER_HOST: tcp://docker:2375
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
 
 default:
   image: python:3.11-slim
@@ -35,7 +44,7 @@ lint:
 type:
   stage: lint
   script:
-    - uv run mypy backend regulations tests
+    - uv run mypy backend regulations tests eval
 
 unit:
   stage: test
@@ -70,6 +79,10 @@ api:
 frontend:
   stage: test
   image: node:22-bookworm-slim
+  cache:
+    key: npm-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/node_modules
   before_script:
     - cd frontend
     - npm ci --no-audit --no-fund
@@ -106,5 +119,56 @@ corpus_diff:
       - regulations/ai_act/corpus/diff/
   allow_failure: true
 
-# Phase 11 adds build (multi-stage Dockerfile) and deploy
-# (Terraform apply to OVH Public Cloud + Kapsule).
+.build_template: &build_template
+  stage: build
+  image: docker:27
+  services:
+    - docker:27-dind
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+    - if: $CI_COMMIT_TAG
+
+build_backend:
+  <<: *build_template
+  script:
+    - docker build
+        --build-arg PYTHON_VERSION=3.11
+        --tag "$REGISTRY_BACKEND:$CI_COMMIT_SHA"
+        --tag "$REGISTRY_BACKEND:latest"
+        .
+    - docker push "$REGISTRY_BACKEND:$CI_COMMIT_SHA"
+    - docker push "$REGISTRY_BACKEND:latest"
+
+build_frontend:
+  <<: *build_template
+  script:
+    - docker build
+        --tag "$REGISTRY_FRONTEND:$CI_COMMIT_SHA"
+        --tag "$REGISTRY_FRONTEND:latest"
+        -f frontend/Dockerfile
+        frontend
+    - docker push "$REGISTRY_FRONTEND:$CI_COMMIT_SHA"
+    - docker push "$REGISTRY_FRONTEND:latest"
+
+deploy_prod:
+  stage: deploy
+  image: alpine/k8s:1.30.0
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
+  environment:
+    name: prod
+    url: https://boussole.broker
+  before_script:
+    - echo "$KUBECONFIG_PROD" | base64 -d > /tmp/kubeconfig
+    - export KUBECONFIG=/tmp/kubeconfig
+  script:
+    - cd infra/k8s/overlays/prod
+    - kustomize edit set image
+        boussole-backend=$REGISTRY_BACKEND:$CI_COMMIT_SHA
+        boussole-frontend=$REGISTRY_FRONTEND:$CI_COMMIT_SHA
+    - kubectl apply -k .
+    - kubectl rollout status deployment/boussole-backend -n boussole --timeout=180s
+    - kubectl rollout status deployment/boussole-frontend -n boussole --timeout=180s

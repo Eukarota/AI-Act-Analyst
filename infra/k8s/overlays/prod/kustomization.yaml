@@ -1,0 +1,48 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: boussole
+
+resources:
+  - ../../base
+
+images:
+  - name: boussole-backend
+    newName: registry.gitlab.com/ceres-broker/boussole/backend
+    newTag: latest
+  - name: boussole-frontend
+    newName: registry.gitlab.com/ceres-broker/boussole/frontend
+    newTag: latest
+
+patches:
+  - target:
+      kind: Deployment
+      name: boussole-backend
+    patch: |
+      - op: replace
+        path: /spec/replicas
+        value: 2
+  - target:
+      kind: Ingress
+      name: boussole
+    patch: |
+      - op: replace
+        path: /spec/rules/0/host
+        value: boussole.broker
+      - op: replace
+        path: /spec/rules/1/host
+        value: api.boussole.broker
+      - op: replace
+        path: /spec/tls/0/hosts/0
+        value: boussole.broker
+      - op: replace
+        path: /spec/tls/0/hosts/1
+        value: api.boussole.broker
+
+# Secrets are NEVER committed. Generate via:
+#   kubectl create secret generic boussole-backend-secrets \
+#     --from-literal=BOUSSOLE_DATABASE_URL=... \
+#     --from-literal=BOUSSOLE_LLM_URL=... \
+#     --from-literal=BOUSSOLE_LLM_MODEL=... \
+#     --from-literal=BOUSSOLE_LLM_API_KEY=... \
+#     -n boussole

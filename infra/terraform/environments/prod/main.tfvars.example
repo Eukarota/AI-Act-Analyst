@@ -1,0 +1,17 @@
+# Copy to main.tfvars and fill in. Never commit the populated file.
+project_name     = "boussole"
+environment      = "prod"
+service_name     = "REPLACE_WITH_OVH_PUBLIC_CLOUD_PROJECT_ID"
+region           = "GRA11"
+postgres_plan    = "essential"
+postgres_flavor  = "db1-7"
+node_pool_flavor = "b3-8"
+
+backend_image  = "registry.gitlab.com/ceres-broker/boussole/backend:latest"
+frontend_image = "registry.gitlab.com/ceres-broker/boussole/frontend:latest"
+
+allowed_ingress_cidrs = [
+  # operator CIDRs go here, scoped tightly. Leave empty in normal operation;
+  # production traffic to Postgres comes from the Kapsule node pool's private
+  # IP range, not from the public internet.
+]

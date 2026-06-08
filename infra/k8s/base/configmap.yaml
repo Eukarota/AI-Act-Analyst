@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: boussole-backend-config
+data:
+  BOUSSOLE_REGULATION: ai_act
+  BOUSSOLE_FIXTURE_CORPUS: "false"
+  BOUSSOLE_LOG_LEVEL: INFO
+  BOUSSOLE_PRE_ASSESSMENT_NOTICE_LANG: fr
