@@ -1,0 +1,50 @@
+# AI Act application timeline.
+#
+# Each date carries a legal source. CLAUDE.md non-negotiables: do not hardcode
+# dates in code, and do not frame deadlines as urgency. These values are
+# subject to ongoing amendment (notably the Digital Omnibus track in 2025/26);
+# treat them as "current applicable date, subject to ongoing amendment".
+
+regulation: "Regulation (EU) 2024/1689"
+celex_id: "32024R1689"
+last_reviewed: "2026-06-08"
+
+milestones:
+  publication_oj:
+    date: "2024-07-12"
+    source: "OJ L, 12.7.2024 (publication of Regulation (EU) 2024/1689)"
+    note: "Publication in the Official Journal of the European Union."
+
+  entry_into_force:
+    date: "2024-08-01"
+    source: "Art. 113 (entry into force on the twentieth day following publication)"
+    note: "Twenty days after publication; obligations apply on staggered dates below."
+
+  prohibitions_apply:
+    date: "2025-02-02"
+    source: "Art. 113(a) (Chapter I and Chapter II apply from 2 February 2025)"
+    note: "Prohibited AI practices under Art. 5 become applicable."
+
+  gpai_obligations_apply:
+    date: "2025-08-02"
+    source: "Art. 113(b) (Chapter V on GPAI applies from 2 August 2025)"
+    note: "General-purpose AI model obligations under Chapter V take effect."
+
+  general_application:
+    date: "2026-08-02"
+    source: "Art. 113 (general application date)"
+    note: "Most obligations apply, including Annex III high-risk systems."
+
+  annex_i_high_risk_extension:
+    date: "2027-08-02"
+    source: "Art. 113(c) (extended transition for products covered by Annex I legislation)"
+    note: "High-risk systems that are safety components of products under Annex I legislation."
+
+amendments_in_flight:
+  - name: "Digital Omnibus"
+    status: "in negotiation"
+    last_checked: "2026-06-08"
+    note: >
+      Various provisions of Regulation (EU) 2024/1689 may be amended through
+      the Digital Omnibus simplification package. Treat the dates above as
+      working values and re-verify against EUR-Lex before relying on them.

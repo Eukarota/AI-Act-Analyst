@@ -1,0 +1,65 @@
+# Boussole CI pipeline.
+# Phase 1 bootstrap: lint + type + unit tests. Subsequent phases add:
+#   Phase 2  -> grounding + retrieval tests
+#   Phase 4  -> rules tests
+#   Phase 6  -> regulation_conformance + eval smoke gate
+#   Phase 9  -> full eval gate (replaces smoke)
+#   Phase 11 -> build image + deploy to OVH
+
+stages:
+  - lint
+  - test
+  - build
+  - deploy
+
+variables:
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+  PYTHON_VERSION: "3.11"
+
+default:
+  image: python:3.11-slim
+  before_script:
+    - pip install --quiet uv
+    - uv sync --all-extras
+  cache:
+    key: uv-$CI_COMMIT_REF_SLUG
+    paths:
+      - .uv-cache/
+
+lint:
+  stage: lint
+  script:
+    - uv run ruff check .
+    - uv run ruff format --check .
+
+type:
+  stage: lint
+  script:
+    - uv run mypy backend regulations tests
+
+unit:
+  stage: test
+  script:
+    - uv run pytest -m "not integration and not eval"
+
+grounding:
+  stage: test
+  script:
+    - uv run pytest tests/grounding -v
+
+rules:
+  stage: test
+  script:
+    - uv run pytest tests/rules -v
+
+# Phase 6 will enable:
+# eval_smoke:
+#   stage: test
+#   script:
+#     - uv run python eval/run_eval.py --regulation ai_act --smoke
+#
+# Phase 9 will replace eval_smoke with the full gate keyed on
+# eval/baselines/$(cat regulations/ai_act/corpus/VERSION).json.
+#
+# Phase 11 adds build (multi-stage Dockerfile) and deploy
+# (Terraform apply to OVH Public Cloud + Kapsule).

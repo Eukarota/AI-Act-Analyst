@@ -1,0 +1,67 @@
+# Local development services.
+#
+# Postgres (default) + vLLM (profile 'llm', requires NVIDIA GPU).
+#
+# Apple Silicon dev path: vLLM's image is CUDA-only. Run Ollama locally instead:
+#   brew install ollama && ollama serve
+#   ollama pull mistral:7b-instruct
+#   BOUSSOLE_LLM_URL=http://localhost:11434 BOUSSOLE_LLM_MODEL=mistral:7b-instruct make integration-test
+#
+# The SelfHostedVLLM adapter speaks the OpenAI /v1/chat/completions protocol,
+# which vLLM, Ollama, and text-generation-inference all implement identically.
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: boussole
+      POSTGRES_PASSWORD: boussole
+      POSTGRES_DB: boussole
+    ports:
+      - "5432:5432"
+    volumes:
+      - boussole-pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boussole -d boussole"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # vLLM production target. Start with `docker compose --profile llm up vllm`.
+  # Requires an NVIDIA GPU host (the OVH Public Cloud build target is GPU).
+  vllm:
+    profiles: ["llm"]
+    image: vllm/vllm-openai:latest
+    restart: unless-stopped
+    ports:
+      - "8001:8000"
+    environment:
+      HF_HUB_OFFLINE: "0"
+      HUGGING_FACE_HUB_TOKEN: ${HUGGING_FACE_HUB_TOKEN:-}
+    command:
+      - --model
+      - ${BOUSSOLE_VLLM_MODEL:-mistralai/Mistral-7B-Instruct-v0.3}
+      - --max-model-len
+      - "8192"
+      - --enable-prefix-caching
+    volumes:
+      - boussole-hfcache:/root/.cache/huggingface
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; urllib.request.urlopen('http://localhost:8000/health', timeout=2)\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 120s
+
+volumes:
+  boussole-pgdata:
+  boussole-hfcache:

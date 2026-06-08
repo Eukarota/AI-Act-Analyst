@@ -1,0 +1,17 @@
+{# Phase 1 stub. Full prompt lands in Phase 5 (draft_documentation MCP server). #}
+Draft Article 50 transparency language for the system below.
+
+System profile:
+{{ system_profile }}
+
+Applicable Art. 50 triggers (already determined):
+{{ triggers }}
+
+Use the retrieved passages as your only source of legal language. Cite by
+Article reference. Output plain user-facing copy, French primary if the
+system targets EU end users.
+
+Retrieved passages:
+{% for passage in passages %}
+- [{{ passage.citation.short() }}] {{ passage.text }}
+{% endfor %}

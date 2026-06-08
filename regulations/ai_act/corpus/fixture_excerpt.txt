@@ -1,0 +1,86 @@
+REGULATION (EU) 2024/1689 OF THE EUROPEAN PARLIAMENT AND OF THE COUNCIL of 13 June 2024 laying down harmonised rules on artificial intelligence (Artificial Intelligence Act)
+
+THE EUROPEAN PARLIAMENT AND THE COUNCIL OF THE EUROPEAN UNION,
+
+Having regard to the Treaty on the Functioning of the European Union, and in particular Articles 16 and 114 thereof,
+
+Whereas:
+
+(1) The purpose of this Regulation is to improve the functioning of the internal market by laying down a uniform legal framework in particular for the development, the placing on the market, the putting into service and the use of artificial intelligence systems in the Union, in accordance with Union values.
+
+(2) This Regulation should promote the uptake of human-centric and trustworthy artificial intelligence while ensuring a high level of protection of health, safety, fundamental rights enshrined in the Charter of Fundamental Rights of the European Union, including democracy, the rule of law and environmental protection.
+
+(15) Apart from the many beneficial uses of AI, that technology can also be misused and provide novel and powerful tools for manipulative, exploitative and social control practices. Such practices are particularly harmful and abusive and should be prohibited because they contradict Union values of respect for human dignity, freedom, equality, democracy and the rule of law.
+
+Article 1
+
+Subject matter
+
+1.   The purpose of this Regulation is to improve the functioning of the internal market and promote the uptake of human-centric and trustworthy AI, while ensuring a high level of protection of health, safety, fundamental rights enshrined in the Charter.
+
+2.   This Regulation lays down harmonised rules for the placing on the market, the putting into service, and the use of AI systems in the Union.
+
+Article 5
+
+Prohibited AI practices
+
+1.   The following AI practices shall be prohibited:
+
+(a)   the placing on the market, the putting into service or the use of an AI system that deploys subliminal techniques beyond a person's consciousness or purposefully manipulative or deceptive techniques, with the objective, or the effect of materially distorting the behaviour of a person or a group of persons.
+
+(b)   the placing on the market, the putting into service or the use of an AI system that exploits any of the vulnerabilities of a natural person or a specific group of persons due to their age, disability or a specific social or economic situation.
+
+(c)   the placing on the market, the putting into service or the use of AI systems for the evaluation or classification of natural persons or groups of persons over a certain period of time based on their social behaviour or known, inferred or predicted personal or personality characteristics (social scoring).
+
+Article 6
+
+Classification rules for high-risk AI systems
+
+1.   Irrespective of whether an AI system is placed on the market or put into service independently of the products referred to in points (a) and (b), that AI system shall be considered to be high-risk where both of the following conditions are fulfilled.
+
+2.   In addition to the high-risk AI systems referred to in paragraph 1, AI systems referred to in Annex III shall be considered to be high-risk.
+
+Article 9
+
+Risk management system
+
+1.   A risk management system shall be established, implemented, documented and maintained in relation to high-risk AI systems.
+
+2.   The risk management system shall be understood as a continuous iterative process planned and run throughout the entire lifecycle of a high-risk AI system.
+
+Article 50
+
+Transparency obligations for providers and deployers of certain AI systems
+
+1.   Providers shall ensure that AI systems intended to interact directly with natural persons are designed and developed in such a way that the natural persons concerned are informed that they are interacting with an AI system, unless this is obvious from the point of view of a natural person who is reasonably well-informed.
+
+2.   Providers of AI systems generating synthetic audio, image, video or text content shall ensure that the outputs of the AI system are marked in a machine-readable format and detectable as artificially generated or manipulated.
+
+Article 53
+
+Obligations for providers of general-purpose AI models
+
+1.   Providers of general-purpose AI models shall draw up and keep up-to-date the technical documentation of the model, including its training and testing process and the results of its evaluation.
+
+Article 113
+
+Entry into force and application
+
+This Regulation shall enter into force on the twentieth day following that of its publication in the Official Journal of the European Union.
+
+It shall apply from 2 August 2026.
+
+ANNEX III
+
+High-risk AI systems referred to in Article 6(2)
+
+High-risk AI systems pursuant to Article 6(2) are the AI systems listed in any of the following areas:
+
+1.   Biometrics, in so far as their use is permitted under relevant Union or national law:
+remote biometric identification systems; AI systems intended to be used for biometric categorisation according to sensitive or protected attributes.
+
+2.   Critical infrastructure: AI systems intended to be used as safety components in the management and operation of critical digital infrastructure, road traffic, or in the supply of water, gas, heating or electricity.
+
+3.   Education and vocational training: AI systems intended to determine access or admission, to assign natural persons to educational institutions, or to evaluate learning outcomes.
+
+4.   Employment, workers management and access to self-employment: AI systems intended to be used for the recruitment or selection of natural persons, in particular to place targeted job advertisements, to analyse and filter job applications, and to evaluate candidates.

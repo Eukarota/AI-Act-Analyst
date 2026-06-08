@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+*.egg
+
+# Tooling
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets and env
+.env
+.env.*
+!.env.example
+
+# Corpus artifacts (large; rebuilt from EUR-Lex)
+regulations/*/corpus/raw/
+regulations/*/corpus/index/
+!regulations/*/corpus/VERSION
+
+# Eval outputs
+eval/reports/
+eval/cache/
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Local docker volumes
+.docker/
+*.pgdata/

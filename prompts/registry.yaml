@@ -1,0 +1,41 @@
+# Prompt registry.
+#
+# Every prompt rendered anywhere in the codebase must appear here. The
+# prompt_set_version stamped into RunManifest is a hash over this file plus
+# the contents of every referenced template. A prompt change requires a PR
+# and (from Phase 6 onward) must pass the eval gate before merge.
+#
+# sha256 fields are filled by `make freeze-prompts` (added in Phase 6).
+
+prompts:
+  intake_extract_attributes:
+    version: 1
+    path: prompts/intake_extract_attributes_v1.j2
+    sha256: null
+    description: >
+      Extract a structured AttributeSet from a free-form system description.
+      Used by the intake node and by the classify_risk MCP server.
+
+  clarify_question:
+    version: 1
+    path: prompts/clarify_question_v1.j2
+    sha256: null
+    description: >
+      Produce a single targeted clarification question when an attribute
+      required for classification is underspecified.
+
+  draft_documentation_annex_iv:
+    version: 1
+    path: prompts/draft_documentation_annex_iv_v1.j2
+    sha256: null
+    description: >
+      Draft an Annex IV technical-documentation skeleton for a high-risk
+      system. Only prompt rendered at non-zero temperature.
+
+  draft_documentation_art_50:
+    version: 1
+    path: prompts/draft_documentation_art_50_v1.j2
+    sha256: null
+    description: >
+      Draft Article 50 transparency language (interaction disclosure,
+      synthetic-content marking, emotion-recognition notice).

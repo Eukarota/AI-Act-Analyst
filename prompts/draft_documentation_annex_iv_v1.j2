@@ -1,0 +1,17 @@
+{# Phase 1 stub. Full prompt lands in Phase 5 (draft_documentation MCP server). #}
+Draft an Annex IV technical-documentation skeleton for the system below.
+
+System profile:
+{{ system_profile }}
+
+Classification (already determined; do not revise):
+{{ classification }}
+
+Use the retrieved passages as your only source of legal language. Cite each
+section by its Article / Annex reference. Mark every conclusion as a
+pre-assessment subject to qualified legal review.
+
+Retrieved passages:
+{% for passage in passages %}
+- [{{ passage.citation.short() }}] {{ passage.text }}
+{% endfor %}
