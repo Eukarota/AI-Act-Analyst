@@ -1,0 +1,17 @@
+{# Art. 50(2) synthetic-content marking notice.
+
+Variables:
+  system_name  - the generator's name
+  language     - "fr" or "en"
+#}
+{% if language == "fr" -%}
+Contenu généré ou modifié par intelligence artificielle.
+Ce fichier a été produit ou modifié par {{ system_name }} et porte un
+marquage lisible par machine identifiant son origine artificielle,
+conformément à l'article 50(2) du règlement (UE) 2024/1689.
+{%- else -%}
+AI-generated or AI-manipulated content.
+This file was produced or modified by {{ system_name }} and carries a
+machine-readable marker identifying its artificial origin, in line with
+Article 50(2) of Regulation (EU) 2024/1689.
+{%- endif %}

@@ -1,0 +1,185 @@
+# Art. 3 defined terms (selected).
+#
+# CLAUDE.md section 12.2: when an extracted attribute references a defined
+# term, inject the legal definition so the model uses it over its prior.
+# This file is the source of record for the AI Act's Art. 3 glossary as
+# used by the agent. It is intentionally not a verbatim transcription of
+# the regulation -- the corpus is. These are compact paraphrases keyed by
+# the term as it appears in attribute extraction, with the article anchor
+# for grounding.
+#
+# Adding a term: paraphrase ~30-60 words, point at the Art. 3 paragraph
+# number, never invent a definition that is not in the regulation.
+
+terms:
+  ai_system:
+    article: "3"
+    paragraph: "1"
+    text: >
+      A machine-based system designed to operate with varying levels of
+      autonomy, that may exhibit adaptiveness after deployment, and that, for
+      explicit or implicit objectives, infers from the input it receives how
+      to generate outputs such as predictions, content, recommendations or
+      decisions that can influence physical or virtual environments.
+
+  general_purpose_ai_model:
+    article: "3"
+    paragraph: "63"
+    text: >
+      An AI model, including where trained with a large amount of data using
+      self-supervision at scale, that displays significant generality and is
+      capable of competently performing a wide range of distinct tasks
+      regardless of how the model is placed on the market, and that can be
+      integrated into a variety of downstream systems or applications.
+
+  provider:
+    article: "3"
+    paragraph: "3"
+    text: >
+      A natural or legal person, public authority, agency or other body that
+      develops an AI system or a general-purpose AI model or has an AI system
+      or a general-purpose AI model developed and places it on the market or
+      puts the AI system into service under its own name or trademark.
+
+  deployer:
+    article: "3"
+    paragraph: "4"
+    text: >
+      A natural or legal person, public authority, agency or other body using
+      an AI system under its authority except where the system is used in the
+      course of a personal non-professional activity.
+
+  distributor:
+    article: "3"
+    paragraph: "7"
+    text: >
+      A natural or legal person in the supply chain, other than the provider
+      or the importer, that makes an AI system available on the Union market.
+
+  importer:
+    article: "3"
+    paragraph: "6"
+    text: >
+      A natural or legal person located or established in the Union that
+      places on the market an AI system that bears the name or trademark of a
+      natural or legal person established in a third country.
+
+  placing_on_the_market:
+    article: "3"
+    paragraph: "9"
+    text: >
+      The first making available of an AI system or a general-purpose AI
+      model on the Union market.
+
+  putting_into_service:
+    article: "3"
+    paragraph: "11"
+    text: >
+      The supply of an AI system for first use directly to the deployer or
+      for own use in the Union for its intended purpose.
+
+  intended_purpose:
+    article: "3"
+    paragraph: "12"
+    text: >
+      The use for which an AI system is intended by the provider, including
+      the specific context and conditions of use, as specified in the
+      information supplied by the provider in the instructions for use,
+      promotional or sales materials and statements, as well as in the
+      technical documentation.
+
+  high_risk_ai_system:
+    article: "3"
+    paragraph: "32"
+    text: >
+      An AI system referred to in Article 6, which is either a safety
+      component of, or itself a product covered by, the Union harmonisation
+      legislation listed in Annex I, or which falls within Annex III.
+
+  safety_component:
+    article: "3"
+    paragraph: "14"
+    text: >
+      A component of a product or of an AI system which fulfils a safety
+      function for that product or AI system, or the failure or malfunctioning
+      of which endangers the health and safety of persons or property.
+
+  biometric_data:
+    article: "3"
+    paragraph: "34"
+    text: >
+      Personal data resulting from specific technical processing relating to
+      the physical, physiological or behavioural characteristics of a natural
+      person, such as facial images or dactyloscopic data.
+
+  biometric_identification:
+    article: "3"
+    paragraph: "35"
+    text: >
+      The automated recognition of physical, physiological, behavioural or
+      psychological human features for the purpose of establishing the
+      identity of a natural person by comparing biometric data of that
+      individual to biometric data of individuals stored in a database.
+
+  biometric_categorisation_system:
+    article: "3"
+    paragraph: "40"
+    text: >
+      An AI system for the purpose of assigning natural persons to specific
+      categories on the basis of their biometric data.
+
+  emotion_recognition_system:
+    article: "3"
+    paragraph: "39"
+    text: >
+      An AI system for the purpose of identifying or inferring emotions or
+      intentions of natural persons on the basis of their biometric data.
+
+  real_time_remote_biometric_identification:
+    article: "3"
+    paragraph: "42"
+    text: >
+      A remote biometric identification system, whereby the capturing of
+      biometric data, the comparison and the identification all occur without
+      a significant delay, comprising not only instant identification but
+      also limited short delays in order to avoid circumvention.
+
+  deepfake:
+    article: "3"
+    paragraph: "60"
+    text: >
+      AI-generated or AI-manipulated image, audio or video content that
+      resembles existing persons, objects, places, entities or events and
+      would falsely appear to a person to be authentic or truthful.
+
+  systemic_risk:
+    article: "3"
+    paragraph: "65"
+    text: >
+      A risk that is specific to the high-impact capabilities of
+      general-purpose AI models, having a significant impact on the Union
+      market due to their reach, or due to actual or reasonably foreseeable
+      negative effects on public health, safety, public security, fundamental
+      rights, or society as a whole, that can be propagated at scale across
+      the value chain.
+
+  serious_incident:
+    article: "3"
+    paragraph: "49"
+    text: >
+      An incident or malfunctioning of an AI system that directly or
+      indirectly leads to: death or serious harm to health, serious and
+      irreversible disruption of the management or operation of critical
+      infrastructure, infringement of obligations under Union law intended
+      to protect fundamental rights, or serious harm to property or
+      environment.
+
+  authorised_representative:
+    article: "3"
+    paragraph: "5"
+    text: >
+      A natural or legal person located or established in the Union who has
+      received and accepted a written mandate from a provider of an AI system
+      or a general-purpose AI model to, respectively, perform and carry out
+      on its behalf the obligations and procedures established by this
+      Regulation.

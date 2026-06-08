@@ -116,8 +116,9 @@ def test_ai_act_timeline_loads_sourced_dates() -> None:
     assert reg.timeline.applicable_on("prohibitions_apply") == "2025-02-02"
 
 
-def test_pending_phase_components_raise_clearly() -> None:
+def test_ai_act_regulation_satisfies_full_protocol() -> None:
+    """Phase 5 completes the AiActRegulation Protocol wiring."""
+    from backend.ports.regulation import Regulation
+
     reg = AiActRegulation()
-    with pytest.raises(Exception) as exc:
-        _ = reg.document_templates
-    assert "Phase 5" in str(exc.value)
+    assert isinstance(reg, Regulation)

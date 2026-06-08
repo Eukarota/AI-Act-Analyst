@@ -1,0 +1,345 @@
+{
+  "fr": {
+    "metadata": {
+      "title": "Boussole · Pré-évaluation AI Act",
+      "description": "Pré-évaluation technique d'un système d'IA face au Règlement (UE) 2024/1689. Chaque conclusion est citée; rien n'est inventé."
+    },
+    "nav": {
+      "brand": "Boussole",
+      "tagline": "Pré-évaluation AI Act",
+      "lang": {
+        "fr": "FR",
+        "en": "EN"
+      }
+    },
+    "hero": {
+      "eyebrow": "Souverain · UE · Règlement (UE) 2024/1689",
+      "headline": "Une pré-évaluation AI Act, citée article par article.",
+      "subhead": "Décrivez votre système. Boussole identifie la classe de risque, énumère les obligations, signale les écarts et brouillonne la documentation. Chaque affirmation pointe vers le texte exact.",
+      "bullets": [
+        "Couche de règles déterministe sur Annexes I et III et Art. 5",
+        "Toute citation est ancrée dans un passage récupéré",
+        "Trace auditée: chaque outil, chaque passage, chaque décision"
+      ],
+      "notice": "Pré-évaluation technique destinée à appuyer une revue juridique qualifiée. Pas un conseil juridique."
+    },
+    "intake": {
+      "heading": "Décrivez le système",
+      "description": "Plus la description est précise, moins l'agent posera de questions. Pas de données personnelles.",
+      "labels": {
+        "system_description": "Description du système",
+        "system_description_placeholder": "Ex. Un outil interne qui filtre les CV pour la pré-sélection des candidats. Un recruteur humain valide les trois premiers candidats avant toute prise de contact.",
+        "actor_role": "Rôle au sens de l'AI Act",
+        "actor_role_help": "Fournisseur, déployeur, importateur, distributeur. Détermine quelles obligations s'appliquent.",
+        "actor_role_options": {
+          "unspecified": "À déterminer",
+          "provider": "Fournisseur",
+          "deployer": "Déployeur",
+          "distributor": "Distributeur",
+          "importer": "Importateur",
+          "product_manufacturer": "Fabricant de produit",
+          "authorised_representative": "Mandataire"
+        },
+        "declared_controls": "Contrôles déjà en place",
+        "declared_controls_help": "Une ligne par contrôle. Sert à l'analyse d'écart.",
+        "declared_controls_placeholder": "Ex. Système de gestion des risques revu chaque trimestre\nJournalisation des sorties avec ID candidat et horodatage\nValidation humaine avant tout contact"
+      },
+      "submit": "Lancer la pré-évaluation",
+      "submit_running": "Évaluation en cours…",
+      "reset": "Nouvelle évaluation",
+      "samples": {
+        "label": "Charger un exemple",
+        "recruitment": "Recrutement",
+        "translator": "Traducteur interne",
+        "chatbot": "Chatbot client",
+        "social_scoring": "Notation sociale (prohibé)"
+      }
+    },
+    "samples": {
+      "recruitment": {
+        "system_description": "Un outil d'IA qui filtre les candidatures et classe les candidats pour notre pipeline interne de recrutement. Le modèle s'exécute en interne. Un recruteur humain examine les trois premiers candidats par poste avant tout contact.",
+        "actor_role": "provider",
+        "declared_controls": "Système de gestion des risques revu chaque trimestre avec l'ingénierie et les RH\nChaque sortie du modèle est journalisée avec l'ID candidat et un horodatage\nUn recruteur humain valide les trois premiers candidats avant tout contact"
+      },
+      "translator": {
+        "system_description": "Un traducteur interne entre le français et l'anglais pour les équipes ingénierie. Les sorties sont relues par l'auteur original avant tout partage.",
+        "actor_role": "deployer",
+        "declared_controls": ""
+      },
+      "chatbot": {
+        "system_description": "Un chatbot grand public qui répond à des questions de premier niveau sur nos forfaits. Génère du texte; les humains qui interagissent avec lui ne sont pas explicitement informés qu'il s'agit d'une IA.",
+        "actor_role": "provider",
+        "declared_controls": ""
+      },
+      "social_scoring": {
+        "system_description": "Un système qui attribue une note de fiabilité à chaque citoyen en se basant sur ses comportements en ligne et hors ligne, et qui restreint l'accès à certains services publics sur la base de cette note.",
+        "actor_role": "provider",
+        "declared_controls": ""
+      }
+    },
+    "tiers": {
+      "prohibited": { "label": "Pratique prohibée", "tone": "danger" },
+      "high_risk_annex_i": { "label": "Haut risque · Annexe I", "tone": "warning" },
+      "high_risk_annex_iii": { "label": "Haut risque · Annexe III", "tone": "warning" },
+      "transparency": { "label": "Risque limité · transparence", "tone": "info" },
+      "minimal": { "label": "Risque minimal", "tone": "success" },
+      "gpai": { "label": "Modèle d'usage général (GPAI)", "tone": "info" },
+      "gpai_systemic": { "label": "GPAI · risque systémique", "tone": "warning" },
+      "undetermined": { "label": "Indéterminé", "tone": "muted" }
+    },
+    "report": {
+      "header_eyebrow": "Pré-évaluation",
+      "header_status": {
+        "complete": "Évaluation terminée",
+        "incomplete_clarification_exhausted": "Clarifications requises",
+        "failed": "Évaluation bloquée"
+      },
+      "grounding_pass": "Contrôle d'ancrage validé",
+      "grounding_fail": "Contrôle d'ancrage en échec",
+      "manifest_label": "Manifeste d'exécution",
+      "manifest_fields": {
+        "run_id": "Identifiant",
+        "corpus_version": "Corpus",
+        "model_id": "Modèle",
+        "prompt_set_version": "Prompts",
+        "rules_version": "Règles",
+        "timestamp": "Horodatage"
+      },
+      "classification": {
+        "heading": "Classification",
+        "fired_rule": "Règle déclenchée",
+        "rationale": "Raisonnement",
+        "supporting_refs": "Citations à l'appui"
+      },
+      "obligations": {
+        "heading": "Obligations applicables",
+        "empty": "Aucune obligation matérielle ne découle d'une classification à risque minimal."
+      },
+      "gaps": {
+        "heading": "Analyse d'écart",
+        "empty": "Aucun écart relevé à partir des contrôles déclarés.",
+        "status": {
+          "met": "Couvert",
+          "partial": "Partiel",
+          "missing": "Manquant",
+          "unclear": "À préciser"
+        }
+      },
+      "drafted_documents": {
+        "heading": "Documentation préparée",
+        "empty": "Pas de documentation à produire pour ce niveau de risque.",
+        "preview_open": "Aperçu",
+        "preview_close": "Replier"
+      },
+      "clarifications": {
+        "heading": "Questions de clarification",
+        "intro": "L'agent a besoin de précisions sur les attributs suivants avant de pouvoir classer le système avec certitude."
+      },
+      "trace": {
+        "heading": "Trace d'exécution",
+        "subhead": "Boîte de verre · chaque nœud du graphe, chaque appel d'outil, chaque vérification d'ancrage.",
+        "expand": "Déplier la trace",
+        "collapse": "Replier la trace",
+        "kinds": {
+          "node_start": "Nœud · début",
+          "node_end": "Nœud · fin",
+          "tool_call": "Outil · appel",
+          "tool_return": "Outil · retour",
+          "llm_call": "LLM · appel",
+          "retrieval": "Récupération",
+          "classification": "Classification",
+          "grounding_check": "Ancrage",
+          "clarification": "Clarification",
+          "error": "Erreur"
+        },
+        "empty": "Aucun événement enregistré.",
+        "latency": "Latence"
+      },
+      "retrieved": {
+        "heading": "Passages récupérés",
+        "score": "Score",
+        "scope": "Portée",
+        "empty": "Aucun passage récupéré pour cette évaluation."
+      },
+      "failures": {
+        "heading": "Anomalies"
+      },
+      "pre_assessment_notice": "Cette sortie est une pré-évaluation technique destinée à appuyer une revue juridique qualifiée. Toute décision finale doit être confirmée sur le texte consolidé du Règlement (UE) 2024/1689 et validée par un conseil juridique avant d'être invoquée."
+    },
+    "errors": {
+      "network": "La connexion au backend a échoué. Vérifiez que le service tourne sur le port configuré.",
+      "validation": "La description doit faire au moins dix caractères pour être traitée.",
+      "unknown": "Une erreur inattendue est survenue."
+    }
+  },
+  "en": {
+    "metadata": {
+      "title": "Boussole · AI Act pre-assessment",
+      "description": "A technical pre-assessment of an AI system against Regulation (EU) 2024/1689. Every claim is cited; nothing is invented."
+    },
+    "nav": {
+      "brand": "Boussole",
+      "tagline": "AI Act pre-assessment",
+      "lang": { "fr": "FR", "en": "EN" }
+    },
+    "hero": {
+      "eyebrow": "Sovereign · EU · Regulation (EU) 2024/1689",
+      "headline": "An AI Act pre-assessment, cited article by article.",
+      "subhead": "Describe your system. Boussole identifies the risk tier, enumerates the obligations, flags gaps, and drafts documentation. Every claim points to the exact passage.",
+      "bullets": [
+        "Deterministic rules layer over Annexes I and III and Article 5",
+        "Every citation is grounded in a retrieved passage",
+        "Audited trace: each tool, each passage, each decision"
+      ],
+      "notice": "Technical pre-assessment to support qualified legal review. Not legal advice."
+    },
+    "intake": {
+      "heading": "Describe the system",
+      "description": "The richer the description, the fewer clarifying questions the agent will ask. No personal data.",
+      "labels": {
+        "system_description": "System description",
+        "system_description_placeholder": "E.g. An internal tool that filters CVs to shortlist candidates. A human recruiter validates the top three before any contact.",
+        "actor_role": "Role under the AI Act",
+        "actor_role_help": "Provider, deployer, importer, distributor. Drives which obligations apply.",
+        "actor_role_options": {
+          "unspecified": "To be determined",
+          "provider": "Provider",
+          "deployer": "Deployer",
+          "distributor": "Distributor",
+          "importer": "Importer",
+          "product_manufacturer": "Product manufacturer",
+          "authorised_representative": "Authorised representative"
+        },
+        "declared_controls": "Controls already in place",
+        "declared_controls_help": "One per line. Used by the gap analysis.",
+        "declared_controls_placeholder": "E.g. Risk management system reviewed quarterly\nOutputs logged with candidate ID and timestamp\nHuman recruiter validates top three before contact"
+      },
+      "submit": "Run the pre-assessment",
+      "submit_running": "Assessment running…",
+      "reset": "New assessment",
+      "samples": {
+        "label": "Load a sample",
+        "recruitment": "Recruitment",
+        "translator": "Internal translator",
+        "chatbot": "Customer chatbot",
+        "social_scoring": "Social scoring (prohibited)"
+      }
+    },
+    "samples": {
+      "recruitment": {
+        "system_description": "An AI tool that filters job applications and ranks candidates for our internal recruitment pipeline. The model runs in-house. A human recruiter reviews the top three candidates per opening before any contact.",
+        "actor_role": "provider",
+        "declared_controls": "Risk management system reviewed quarterly with engineering and HR\nEvery model output is logged with candidate ID and timestamp\nHuman recruiter reviews top three before any candidate contact"
+      },
+      "translator": {
+        "system_description": "An internal translator from French to English for engineering teams. Outputs are reviewed by the original author before sharing.",
+        "actor_role": "deployer",
+        "declared_controls": ""
+      },
+      "chatbot": {
+        "system_description": "A consumer-facing chatbot answering first-line questions about our plans. Generates text; humans interacting with it are not explicitly told they are interacting with an AI.",
+        "actor_role": "provider",
+        "declared_controls": ""
+      },
+      "social_scoring": {
+        "system_description": "A system that assigns a trust score to each citizen based on online and offline behaviour, and restricts access to public services on the basis of that score.",
+        "actor_role": "provider",
+        "declared_controls": ""
+      }
+    },
+    "tiers": {
+      "prohibited": { "label": "Prohibited practice", "tone": "danger" },
+      "high_risk_annex_i": { "label": "High risk · Annex I", "tone": "warning" },
+      "high_risk_annex_iii": { "label": "High risk · Annex III", "tone": "warning" },
+      "transparency": { "label": "Limited risk · transparency", "tone": "info" },
+      "minimal": { "label": "Minimal risk", "tone": "success" },
+      "gpai": { "label": "General-purpose AI model", "tone": "info" },
+      "gpai_systemic": { "label": "GPAI · systemic risk", "tone": "warning" },
+      "undetermined": { "label": "Undetermined", "tone": "muted" }
+    },
+    "report": {
+      "header_eyebrow": "Pre-assessment",
+      "header_status": {
+        "complete": "Assessment complete",
+        "incomplete_clarification_exhausted": "Clarifications required",
+        "failed": "Assessment blocked"
+      },
+      "grounding_pass": "Grounding check passed",
+      "grounding_fail": "Grounding check failed",
+      "manifest_label": "Run manifest",
+      "manifest_fields": {
+        "run_id": "Run ID",
+        "corpus_version": "Corpus",
+        "model_id": "Model",
+        "prompt_set_version": "Prompts",
+        "rules_version": "Rules",
+        "timestamp": "Timestamp"
+      },
+      "classification": {
+        "heading": "Classification",
+        "fired_rule": "Fired rule",
+        "rationale": "Rationale",
+        "supporting_refs": "Supporting citations"
+      },
+      "obligations": {
+        "heading": "Applicable obligations",
+        "empty": "No material obligations attach to a minimal-risk classification."
+      },
+      "gaps": {
+        "heading": "Gap analysis",
+        "empty": "No gaps found against the declared controls.",
+        "status": {
+          "met": "Met",
+          "partial": "Partial",
+          "missing": "Missing",
+          "unclear": "Unclear"
+        }
+      },
+      "drafted_documents": {
+        "heading": "Drafted documentation",
+        "empty": "No documentation required at this risk tier.",
+        "preview_open": "Preview",
+        "preview_close": "Collapse"
+      },
+      "clarifications": {
+        "heading": "Clarifying questions",
+        "intro": "The agent needs the following attributes specified before it can classify the system with confidence."
+      },
+      "trace": {
+        "heading": "Execution trace",
+        "subhead": "Glass-box · every graph node, every tool call, every grounding check.",
+        "expand": "Expand trace",
+        "collapse": "Collapse trace",
+        "kinds": {
+          "node_start": "Node · start",
+          "node_end": "Node · end",
+          "tool_call": "Tool · call",
+          "tool_return": "Tool · return",
+          "llm_call": "LLM · call",
+          "retrieval": "Retrieval",
+          "classification": "Classification",
+          "grounding_check": "Grounding",
+          "clarification": "Clarification",
+          "error": "Error"
+        },
+        "empty": "No events recorded.",
+        "latency": "Latency"
+      },
+      "retrieved": {
+        "heading": "Retrieved passages",
+        "score": "Score",
+        "scope": "Scope",
+        "empty": "No passages retrieved for this assessment."
+      },
+      "failures": {
+        "heading": "Anomalies"
+      },
+      "pre_assessment_notice": "This output is a technical pre-assessment intended to support qualified legal review. Any final determination must be confirmed against the consolidated text of Regulation (EU) 2024/1689 and signed off by counsel before being relied upon."
+    },
+    "errors": {
+      "network": "Could not reach the backend. Make sure the API is running on the configured port.",
+      "validation": "The description must be at least ten characters long to be processed.",
+      "unknown": "An unexpected error occurred."
+    }
+  }
+}

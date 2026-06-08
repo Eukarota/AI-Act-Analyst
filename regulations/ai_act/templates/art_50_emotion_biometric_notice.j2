@@ -1,0 +1,20 @@
+{# Art. 50(3) emotion-recognition / biometric-categorisation notice.
+
+Variables:
+  system_name  - the deployed system's name
+  language     - "fr" or "en"
+#}
+{% if language == "fr" -%}
+Information importante : ce service utilise un système de reconnaissance
+des émotions ou de catégorisation biométrique ({{ system_name }}).
+Conformément à l'article 50(3) du règlement (UE) 2024/1689, vous êtes
+informé de son fonctionnement. Vos données biométriques font l'objet d'un
+traitement décrit dans notre politique de confidentialité ; vous pouvez
+vous opposer à ce traitement dans les conditions prévues par le RGPD.
+{%- else -%}
+Important notice: this service uses an emotion-recognition or biometric
+categorisation system ({{ system_name }}). Pursuant to Article 50(3) of
+Regulation (EU) 2024/1689, you are informed of its operation. Your
+biometric data are processed as described in our privacy policy; you may
+object to the processing under the conditions laid down by the GDPR.
+{%- endif %}

@@ -1,0 +1,18 @@
+{# Art. 50(1) interaction-disclosure copy.
+
+Variables:
+  system_name  - product/system name as the user encounters it
+  language     - "fr" or "en"; default fr per the operator profile
+#}
+{% if language == "fr" -%}
+Vous interagissez avec un système d'intelligence artificielle ({{ system_name }}).
+Conformément à l'article 50(1) du règlement (UE) 2024/1689, nous vous en
+informons explicitement. Vos échanges peuvent être conservés pour
+améliorer le service ; vous pouvez à tout moment demander à interagir avec
+un opérateur humain.
+{%- else -%}
+You are interacting with an artificial-intelligence system ({{ system_name }}).
+Pursuant to Article 50(1) of Regulation (EU) 2024/1689, we are informing
+you of this explicitly. Your messages may be retained to improve the
+service; you may request to interact with a human operator at any time.
+{%- endif %}

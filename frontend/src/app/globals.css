@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-dim: var(--foreground-dim);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --font-sans: var(--font-inter);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+}
+
+:root {
+  --background: #000000;
+  --background-elevated: #0a0a0a;
+  --foreground: #f4f4f5;
+  --foreground-muted: #a1a1aa;
+  --foreground-dim: #71717a;
+  --card: #0a0a0a;
+  --card-foreground: #f4f4f5;
+  --border: #1f1f23;
+  --border-strong: #2a2a30;
+  --primary: #f4f4f5;
+  --primary-foreground: #0a0a0a;
+  --accent: #6ea8fe;
+  --success: #34c759;
+  --warning: #ffb454;
+  --danger: #ff453a;
+  --info: #6ea8fe;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    color-scheme: dark;
+    background: var(--background);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "cv11", "ss01", "ss03";
+    letter-spacing: -0.011em;
+  }
+  p {
+    color: var(--foreground-muted);
+    line-height: 1.55;
+  }
+  ::selection {
+    background: rgba(110, 168, 254, 0.35);
+    color: var(--foreground);
+  }
+}
+
+@layer utilities {
+  .glass {
+    background: rgba(10, 10, 10, 0.65);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+  }
+
+  .ring-soft {
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+
+  .grid-bg {
+    background-image:
+      radial-gradient(circle at 50% 0%, rgba(110, 168, 254, 0.08), transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size:
+      100% 100%,
+      40px 40px,
+      40px 40px;
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}

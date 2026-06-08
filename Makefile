@@ -1,5 +1,6 @@
-.PHONY: help install lint type test smoke index-corpus dev-backend dev-frontend eval clean \
-        up-db down-db up-llm down-llm down integration-test
+.PHONY: help install lint type test smoke index-corpus dev-backend dev-backend-fake \
+        dev-frontend frontend-build frontend-lint eval clean up-db down-db \
+        up-llm down-llm down integration-test
 
 help:
 	@echo "Boussole targets:"
@@ -13,7 +14,8 @@ help:
 	@echo "  up-db / down-db   Start / stop the Postgres+pgvector dev container"
 	@echo "  up-llm / down-llm Start / stop the vLLM container (GPU host only)"
 	@echo "  down              Stop all dev containers"
-	@echo "  dev-backend       Run FastAPI + MCP servers locally (Phase 7)"
+	@echo "  dev-backend       Run FastAPI locally against Postgres run-store (Phase 7)"
+	@echo "  dev-backend-fake  Run FastAPI locally against the in-memory run-store (no DB)"
 	@echo "  dev-frontend      Run Next.js dev server (Phase 8)"
 	@echo "  eval              Run the eval suite against the frozen baseline (Phase 9)"
 
@@ -57,8 +59,19 @@ down:
 dev-backend:
 	uv run uvicorn backend.api.app:app --reload --port 8000
 
+dev-backend-fake:
+	BOUSSOLE_USE_IN_MEMORY_STORE=true \
+	  uv run uvicorn backend.api.app:app --reload --port 8000
+
 dev-frontend:
 	cd frontend && npm install && npm run dev
+
+frontend-build:
+	cd frontend && npm install && npm run build
+
+frontend-lint:
+	cd frontend && npm run lint
+	cd frontend && npm run typecheck
 
 eval:
 	uv run python eval/run_eval.py --regulation ai_act \

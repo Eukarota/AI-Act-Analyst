@@ -52,12 +52,37 @@ rules:
   script:
     - uv run pytest tests/rules -v
 
-# Phase 6 will enable:
-# eval_smoke:
-#   stage: test
-#   script:
-#     - uv run python eval/run_eval.py --regulation ai_act --smoke
-#
+regulation_conformance:
+  stage: test
+  script:
+    - uv run pytest tests/regulation_conformance -v
+
+agent_e2e:
+  stage: test
+  script:
+    - uv run pytest tests/agent tests/mcp_servers -v
+
+api:
+  stage: test
+  script:
+    - uv run pytest tests/api -v
+
+frontend:
+  stage: test
+  image: node:22-bookworm-slim
+  before_script:
+    - cd frontend
+    - npm ci --no-audit --no-fund
+  script:
+    - npm run lint
+    - npm run typecheck
+    - npm run build
+
+eval_smoke:
+  stage: test
+  script:
+    - uv run python eval/run_eval.py --regulation ai_act --smoke --report
+
 # Phase 9 will replace eval_smoke with the full gate keyed on
 # eval/baselines/$(cat regulations/ai_act/corpus/VERSION).json.
 #

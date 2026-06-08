@@ -35,8 +35,14 @@ from regulations.ai_act.corpus.scope import scope_for_citation
 CELEX_ID = "32024R1689"
 
 
-@dataclass(frozen=True)
+@dataclass
 class AiActChunkerConfig:
+    """Chunker knobs satisfying the ChunkerConfig Protocol.
+
+    Not frozen so the Protocol's plain (settable) attribute slots match the
+    runtime shape. Treat instances as immutable in callers.
+    """
+
     max_chars: int = 1800
     overlap_chars: int = 0
     index_recitals_separately: bool = True

@@ -1,0 +1,17 @@
+{# Art. 50(4) deepfake disclosure.
+
+Variables:
+  system_name  - the deployer's product/system name
+  language     - "fr" or "en"
+#}
+{% if language == "fr" -%}
+Contenu artificiellement généré ou manipulé (deepfake).
+Le contenu suivant a été produit ou modifié par intelligence artificielle
+({{ system_name }}). Cette divulgation est faite en application de
+l'article 50(4) du règlement (UE) 2024/1689.
+{%- else -%}
+Artificially generated or manipulated content (deepfake).
+The following content has been produced or altered by an artificial
+intelligence system ({{ system_name }}). This disclosure is made pursuant
+to Article 50(4) of Regulation (EU) 2024/1689.
+{%- endif %}
