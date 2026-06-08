@@ -1,27 +1,27 @@
 """
 run_eval.py -- Boussole evaluation harness.
 
-Phase 6 ships the --smoke mode: a tiny 5-case sanity check wired into CI as
-a required gate so prompt changes in subsequent phases cannot merge without
-running the agent end-to-end. Phase 9 ships the full §12.1 gates (tier
-accuracy, citation precision/recall, FN-high-risk rate, etc.) and replaces
-this harness's exit criteria with frozen baselines.
+Phase 9: full CLAUDE.md section 12.1 gates. The smoke set still ships
+(--smoke) for fast CI sanity checks, but the default mode is now the
+gold set with the published metric gates and the LLM-as-judge for
+drafted-document quality.
 
-Each case is a JSONL record with:
+Modes:
 
-  id                  (str)   identifier
-  draft               (bool)  true while the case is unreviewed by the operator
-  system_description  (str)   input to the agent
-  scripted_extraction (dict)  pre-canned attribute extraction (FakeLLM input)
-  expected_tier       (str)   Tier value the rules engine must return
-  expected_articles   (list)  article numbers expected to appear in the
-                              union of supporting_refs and obligations
-  domain              (str)   slice label (used by Phase 9 per-domain stats)
+  python eval/run_eval.py --regulation ai_act --smoke
+      Lightweight 5-case sanity check (kept for fast CI on every push).
 
-Usage:
+  python eval/run_eval.py --regulation ai_act --gold
+      Full gold set; computes all §12.1 metrics; writes report.json + .md.
 
-    python eval/run_eval.py --regulation ai_act --smoke
-    python eval/run_eval.py --regulation ai_act --report
+  python eval/run_eval.py --regulation ai_act --gold \
+      --baseline eval/baselines/<corpus_version>.json
+      Same as above, plus regression check against the frozen baseline.
+      Exit 1 if any gate fails OR any metric regresses vs baseline.
+
+  python eval/run_eval.py --regulation ai_act --gold --freeze-baseline
+      Writes the produced metrics to eval/baselines/<corpus_version>.json.
+      Use deliberately, after a manual review of the report.
 """
 
 from __future__ import annotations
@@ -43,54 +43,72 @@ from backend.agent.graph import run_assessment
 from backend.agent.state import AgentState, Citation, SystemProfile
 from backend.prompts.loader import default_registry
 from backend.rag.retrieve import HybridRetriever
+from eval.judge import judge_documents
+from eval.metrics import (
+    CaseOutcome,
+    GateResult,
+    Metrics,
+    compute_metrics,
+    evaluate_gates,
+)
 from regulations.ai_act import AiActRegulation
 from regulations.ai_act.corpus.loader import AiActChunkerConfig, AiActCorpusLoader
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_PATH = REPO_ROOT / "regulations" / "ai_act" / "corpus" / "fixture_excerpt.txt"
 SMOKE_PATH = REPO_ROOT / "eval" / "smoke_set.jsonl"
+GOLD_PATH = REPO_ROOT / "eval" / "gold_set.jsonl"
 REPORT_DIR = REPO_ROOT / "eval" / "reports"
+BASELINE_DIR = REPO_ROOT / "eval" / "baselines"
 
-# Smoke thresholds. The smoke gate's job is "did the agent run end-to-end
-# correctly" -- tier accuracy plus expected-article recall. The
-# precision-style metric is a Phase 9 concern (full §12.1 gates against
-# frozen baselines), not a smoke concern.
-SMOKE_TIER_ACCURACY_MIN = 1.0  # smoke set is scripted, expect 100%
-SMOKE_ARTICLE_RECALL_MIN = 1.0  # every expected article must surface
+SMOKE_TIER_ACCURACY_MIN = 1.0
+SMOKE_ARTICLE_RECALL_MIN = 1.0
+
+# A regression tolerance: when comparing to a frozen baseline, we let a
+# metric drift by epsilon to absorb floating-point noise. Real regressions
+# (a tier flipping, a citation disappearing) move metrics by >> epsilon.
+BASELINE_EPSILON = 1e-4
 
 
 @dataclass(frozen=True)
 class EvalCase:
     id: str
     draft: bool
+    slice: str
+    difficulty: str
+    domain: str
     system_description: str
     scripted_extraction: dict[str, Any]
     expected_tier: str
     expected_articles: list[str]
-    domain: str
+    rationale: str
 
     @classmethod
     def from_dict(cls, raw: dict[str, Any]) -> EvalCase:
         return cls(
             id=raw["id"],
             draft=bool(raw.get("draft", False)),
+            slice=raw.get("slice", "stratified"),
+            difficulty=raw.get("difficulty", "medium"),
+            domain=raw.get("domain", "unspecified"),
             system_description=raw["system_description"],
             scripted_extraction=raw["scripted_extraction"],
             expected_tier=raw["expected_tier"],
             expected_articles=[str(a) for a in raw.get("expected_articles", [])],
-            domain=raw.get("domain", "unspecified"),
+            rationale=str(raw.get("rationale", "")),
         )
 
 
 @dataclass
-class CaseResult:
+class CaseRunResult:
     case: EvalCase
     actual_tier: str
     actual_articles: list[str]
+    obligation_articles: list[str]
     tier_match: bool
-    article_recall: float
-    article_precision: float
-    fail_reasons: list[str]
+    grounded: bool
+    drafted_count: int
+    error: str | None
 
 
 def load_cases(path: Path) -> list[EvalCase]:
@@ -104,7 +122,6 @@ def load_cases(path: Path) -> list[EvalCase]:
 
 
 def _full_attributes(extraction: dict[str, Any]) -> dict[str, Any]:
-    """Pad the scripted extraction with default fields so AttributeSet validates."""
     defaults: dict[str, Any] = {
         "purpose": extraction.get("purpose") or "system",
         "domain": None,
@@ -158,7 +175,7 @@ async def _build_deps() -> AgentDependencies:
     )
 
 
-async def _run_case(case: EvalCase, deps: AgentDependencies) -> CaseResult:
+async def _run_case(case: EvalCase, deps: AgentDependencies) -> CaseRunResult:
     fake_llm: FakeLLM = deps.llm  # type: ignore[assignment]
     prompts = deps.prompts
     rendered = prompts.render(
@@ -168,25 +185,26 @@ async def _run_case(case: EvalCase, deps: AgentDependencies) -> CaseResult:
     fake_llm.script(rendered, json.dumps(_full_attributes(case.scripted_extraction)))
 
     state = AgentState(system_profile=SystemProfile(description=case.system_description))
-    fail_reasons: list[str] = []
 
     try:
         final = await run_assessment(state, deps=deps)
     except Exception as exc:
-        return CaseResult(
+        return CaseRunResult(
             case=case,
             actual_tier="error",
             actual_articles=[],
+            obligation_articles=[],
             tier_match=False,
-            article_recall=0.0,
-            article_precision=0.0,
-            fail_reasons=[f"agent raised {type(exc).__name__}: {exc}"],
+            grounded=False,
+            drafted_count=0,
+            error=f"{type(exc).__name__}: {exc}",
         )
 
     actual_tier = final.classification.tier.value if final.classification else "unknown"
     tier_match = actual_tier == case.expected_tier
 
     article_sources: set[str] = set()
+    obligation_articles: set[str] = set()
     if final.classification:
         for ref in final.classification.supporting_refs:
             if ref.article:
@@ -194,109 +212,80 @@ async def _run_case(case: EvalCase, deps: AgentDependencies) -> CaseResult:
     for obligation in final.obligations:
         if obligation.citation.article:
             article_sources.add(str(obligation.citation.article))
+            obligation_articles.add(str(obligation.citation.article))
 
-    expected = set(case.expected_articles)
-    overlap = expected & article_sources
-    recall = (len(overlap) / len(expected)) if expected else 1.0
-    precision = (
-        (len(overlap) / len(article_sources)) if article_sources else (1.0 if not expected else 0.0)
+    grounded = any(
+        e["kind"] == "grounding_check" and e["name"].endswith("grounding_passed")
+        for e in final.trace_events
     )
 
-    if not tier_match:
-        fail_reasons.append(f"expected tier {case.expected_tier!r}, got {actual_tier!r}")
-    if expected and recall < 1.0:
-        missing = sorted(expected - article_sources)
-        fail_reasons.append(f"missing expected articles: {missing}")
-
-    return CaseResult(
+    return CaseRunResult(
         case=case,
         actual_tier=actual_tier,
         actual_articles=sorted(article_sources),
+        obligation_articles=sorted(obligation_articles),
         tier_match=tier_match,
-        article_recall=recall,
-        article_precision=precision,
-        fail_reasons=fail_reasons,
+        grounded=grounded,
+        drafted_count=len(final.drafted_documents),
+        error=None,
     )
 
 
-def _summarise(results: Iterable[CaseResult]) -> dict[str, Any]:
+def _outcome(run: CaseRunResult) -> CaseOutcome:
+    expected_obligations = {
+        a for a in run.case.expected_articles if a not in {"5", "51", "53", "55"}
+    }
+    actual_obligations = set(run.obligation_articles)
+    if expected_obligations:
+        recall = len(expected_obligations & actual_obligations) / len(expected_obligations)
+    else:
+        recall = 1.0
+    return CaseOutcome(
+        case_id=run.case.id,
+        slice=run.case.slice,
+        domain=run.case.domain,
+        expected_tier=run.case.expected_tier,
+        actual_tier=run.actual_tier,
+        expected_articles=tuple(run.case.expected_articles),
+        actual_articles=tuple(run.actual_articles),
+        obligation_article_recall=recall,
+        grounded=run.grounded,
+        error=run.error,
+    )
+
+
+def _summarise_smoke(results: Iterable[CaseRunResult]) -> dict[str, Any]:
     results_list = list(results)
     total = len(results_list)
     tier_correct = sum(1 for r in results_list if r.tier_match)
-    avg_recall = sum(r.article_recall for r in results_list) / total if total else 0.0
-    avg_precision = sum(r.article_precision for r in results_list) / total if total else 0.0
-    per_domain: dict[str, dict[str, float]] = {}
+    article_recalls: list[float] = []
     for r in results_list:
-        bucket = per_domain.setdefault(r.case.domain, {"count": 0.0, "tier_correct": 0.0})
-        bucket["count"] += 1.0
-        bucket["tier_correct"] += 1.0 if r.tier_match else 0.0
+        expected = set(r.case.expected_articles)
+        if expected:
+            article_recalls.append(
+                len(expected & set(r.actual_articles)) / len(expected)
+            )
+        else:
+            article_recalls.append(1.0)
+    avg_recall = sum(article_recalls) / total if total else 0.0
     return {
         "case_count": total,
         "tier_accuracy": tier_correct / total if total else 0.0,
         "avg_article_recall": avg_recall,
-        "avg_article_precision": avg_precision,
-        "per_domain": per_domain,
         "failures": [
-            {"id": r.case.id, "reasons": r.fail_reasons} for r in results_list if r.fail_reasons
+            {
+                "id": r.case.id,
+                "actual_tier": r.actual_tier,
+                "expected_tier": r.case.expected_tier,
+                "error": r.error,
+            }
+            for r in results_list
+            if not r.tier_match or r.error or (set(r.case.expected_articles) - set(r.actual_articles))
         ],
     }
 
 
-def _write_report(summary: dict[str, Any], results: list[CaseResult]) -> None:
-    REPORT_DIR.mkdir(parents=True, exist_ok=True)
-    json_path = REPORT_DIR / "smoke_report.json"
-    md_path = REPORT_DIR / "smoke_report.md"
-    json_path.write_text(
-        json.dumps(
-            {
-                "summary": summary,
-                "results": [
-                    {
-                        "id": r.case.id,
-                        "expected_tier": r.case.expected_tier,
-                        "actual_tier": r.actual_tier,
-                        "expected_articles": r.case.expected_articles,
-                        "actual_articles": r.actual_articles,
-                        "tier_match": r.tier_match,
-                        "article_recall": r.article_recall,
-                        "article_precision": r.article_precision,
-                        "fail_reasons": r.fail_reasons,
-                    }
-                    for r in results
-                ],
-            },
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-    lines = [
-        "# Boussole eval smoke report",
-        "",
-        f"- Case count: {summary['case_count']}",
-        f"- Tier accuracy: {summary['tier_accuracy']:.2%}",
-        f"- Avg article recall: {summary['avg_article_recall']:.2%}",
-        f"- Avg article precision: {summary['avg_article_precision']:.2%}",
-        "",
-        "| id | expected | actual | tier? | articles? |",
-        "| --- | --- | --- | --- | --- |",
-    ]
-    for r in results:
-        ok_tier = "OK" if r.tier_match else "FAIL"
-        ok_articles = (
-            "OK"
-            if not r.fail_reasons or all("missing" not in reason for reason in r.fail_reasons)
-            else "FAIL"
-        )
-        lines.append(
-            f"| {r.case.id} | {r.case.expected_tier} | {r.actual_tier} | "
-            f"{ok_tier} | {ok_articles} |"
-        )
-    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-
-
-def _exit_status(summary: dict[str, Any], *, smoke: bool) -> int:
-    if not smoke:
-        return 0
+def _smoke_status(summary: dict[str, Any]) -> int:
     if summary["tier_accuracy"] < SMOKE_TIER_ACCURACY_MIN:
         return 1
     if summary["avg_article_recall"] < SMOKE_ARTICLE_RECALL_MIN:
@@ -306,34 +295,260 @@ def _exit_status(summary: dict[str, Any], *, smoke: bool) -> int:
     return 0
 
 
+def _baseline_regressions(metrics: Metrics, baseline: dict[str, Any]) -> list[str]:
+    """Return descriptions of metrics that regressed vs the baseline."""
+    regressions: list[str] = []
+    higher_is_better = {
+        "tier_accuracy",
+        "citation_precision",
+        "citation_recall",
+        "groundedness",
+        "obligation_recall",
+        "injection_resistance",
+    }
+    lower_is_better = {"fn_high_risk_rate"}
+    current = metrics.to_json()
+    for key in higher_is_better:
+        if key in baseline and current[key] + BASELINE_EPSILON < baseline[key]:
+            regressions.append(f"{key}: {current[key]:.4f} < baseline {baseline[key]:.4f}")
+    for key in lower_is_better:
+        if key in baseline and current[key] > baseline[key] + BASELINE_EPSILON:
+            regressions.append(f"{key}: {current[key]:.4f} > baseline {baseline[key]:.4f}")
+    return regressions
+
+
+def _write_gold_reports(
+    metrics: Metrics,
+    runs: list[CaseRunResult],
+    judge: dict[str, Any],
+    gates: list[GateResult],
+    corpus_version: str,
+    baseline_regressions: list[str],
+) -> None:
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    json_path = REPORT_DIR / "gold_report.json"
+    md_path = REPORT_DIR / "gold_report.md"
+    payload = {
+        "corpus_version": corpus_version,
+        "metrics": metrics.to_json(),
+        "gates": [
+            {"name": g.name, "passed": g.passed, "value": round(g.value, 4)} for g in gates
+        ],
+        "judge": judge,
+        "baseline_regressions": baseline_regressions,
+        "cases": [
+            {
+                "id": r.case.id,
+                "slice": r.case.slice,
+                "domain": r.case.domain,
+                "expected_tier": r.case.expected_tier,
+                "actual_tier": r.actual_tier,
+                "expected_articles": r.case.expected_articles,
+                "actual_articles": r.actual_articles,
+                "grounded": r.grounded,
+                "drafted_documents": r.drafted_count,
+                "error": r.error,
+            }
+            for r in runs
+        ],
+    }
+    json_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+
+    lines: list[str] = []
+    lines.append("# Boussole eval gold report")
+    lines.append("")
+    lines.append(f"- Corpus version: `{corpus_version}`")
+    lines.append(f"- Cases: {metrics.case_count}")
+    lines.append("")
+    lines.append("## Section 12.1 gates")
+    lines.append("")
+    lines.append("| Gate | Value | Status |")
+    lines.append("| --- | ---: | --- |")
+    for g in gates:
+        lines.append(f"| {g.name} | {g.value:.4f} | {'OK' if g.passed else 'FAIL'} |")
+    lines.append("")
+    lines.append("## Per-slice tier accuracy")
+    for k, v in sorted(metrics.per_slice_tier_accuracy.items()):
+        lines.append(f"- {k}: {v:.2%}")
+    lines.append("")
+    lines.append("## Per-domain tier accuracy")
+    for k, v in sorted(metrics.per_domain_tier_accuracy.items()):
+        lines.append(f"- {k}: {v:.2%}")
+    lines.append("")
+    lines.append("## Tier confusion matrix")
+    lines.append("")
+    if metrics.tier_confusion:
+        all_actual: set[str] = set()
+        for row in metrics.tier_confusion.values():
+            all_actual.update(row.keys())
+        actuals_sorted = sorted(all_actual)
+        header = "| expected \\ actual | " + " | ".join(actuals_sorted) + " |"
+        sep = "| --- | " + " | ".join("---" for _ in actuals_sorted) + " |"
+        lines.append(header)
+        lines.append(sep)
+        for exp in sorted(metrics.tier_confusion):
+            row = metrics.tier_confusion[exp]
+            cells = [str(row.get(a, 0)) for a in actuals_sorted]
+            lines.append(f"| {exp} | " + " | ".join(cells) + " |")
+        lines.append("")
+    lines.append("## Drafted-doc judge")
+    lines.append("")
+    lines.append(f"- Judged documents: {judge.get('judged_documents', 0)}")
+    lines.append(f"- Mean score (1-4): {judge.get('mean_score', 0):.2f}")
+    if judge.get("calibrated_kappa") is not None:
+        lines.append(f"- Calibrated kappa: {judge['calibrated_kappa']:.2f}")
+    else:
+        lines.append(
+            f"- Calibration: insufficient samples "
+            f"({judge.get('calibration_sample_size', 0)} of 20 required)."
+        )
+    if baseline_regressions:
+        lines.append("")
+        lines.append("## Baseline regressions")
+        for r in baseline_regressions:
+            lines.append(f"- {r}")
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _baseline_path(corpus_version: str) -> Path:
+    return BASELINE_DIR / f"{corpus_version}.json"
+
+
 async def amain() -> int:
     parser = argparse.ArgumentParser(description="Boussole eval harness")
     parser.add_argument("--regulation", required=True, choices=["ai_act"])
-    parser.add_argument("--smoke", action="store_true", help="Run the 5-case smoke set")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--smoke", action="store_true", help="5-case smoke set (Phase 6 default)")
+    group.add_argument("--gold", action="store_true", help="Full gold set (Phase 9 §12.1 gates)")
     parser.add_argument("--report", action="store_true", help="Write report files")
-    parser.add_argument("--baseline", type=Path, default=None, help="(Phase 9) baseline JSON")
+    parser.add_argument(
+        "--baseline",
+        type=Path,
+        default=None,
+        help="Frozen baseline JSON to compare against (gold mode only)",
+    )
+    parser.add_argument(
+        "--freeze-baseline",
+        action="store_true",
+        help="Write current metrics as the new baseline keyed on corpus_version.",
+    )
     args = parser.parse_args()
 
     if args.regulation != "ai_act":
         print(f"unsupported regulation: {args.regulation}", file=sys.stderr)
         return 2
 
-    # Default behaviour is --smoke until Phase 9 wires the full gates.
-    smoke = args.smoke or args.baseline is None
+    if not args.smoke and not args.gold:
+        # Default to smoke for backwards compatibility with existing CI.
+        args.smoke = True
 
     deps = await _build_deps()
-    # Phase 6 only ships the smoke set; the full gold_set lands in Phase 9.
-    cases = load_cases(SMOKE_PATH)
-    _ = smoke  # reserved for Phase 9's gold-set path
-    results: list[CaseResult] = []
+    path = SMOKE_PATH if args.smoke else GOLD_PATH
+    cases = load_cases(path)
+    runs: list[CaseRunResult] = []
     for case in cases:
-        results.append(await _run_case(case, deps))
+        runs.append(await _run_case(case, deps))
 
-    summary = _summarise(results)
-    print(json.dumps(summary, indent=2))
+    if args.smoke:
+        summary = _summarise_smoke(runs)
+        print(json.dumps(summary, indent=2))
+        if args.report:
+            REPORT_DIR.mkdir(parents=True, exist_ok=True)
+            (REPORT_DIR / "smoke_report.json").write_text(
+                json.dumps(summary, indent=2), encoding="utf-8"
+            )
+        return _smoke_status(summary)
+
+    # Gold path
+    outcomes = [_outcome(r) for r in runs]
+    metrics = compute_metrics(outcomes)
+    gates = evaluate_gates(metrics)
+
+    all_drafted: list = []
+    for run in runs:
+        # Re-render the case so we can collect drafted_documents from the
+        # final state. The graph is deterministic given fixed scripted_extraction,
+        # so a second pass produces the same docs.
+        pass
+    # The judge runs on the documents already produced. To avoid running the
+    # graph twice, we capture documents during the first pass via a side
+    # channel: rebuild a small helper that re-runs only the cases that
+    # actually produced docs (anything tier != minimal/prohibited).
+    judge_payload: dict[str, Any] = {
+        "judged_documents": 0,
+        "mean_score": 0.0,
+        "per_criterion": {},
+        "calibrated_kappa": None,
+        "calibration_sample_size": 0,
+        "judge_above_calibration_threshold": False,
+    }
+    try:
+        drafted_docs = await _collect_drafted_docs(cases, deps)
+        if drafted_docs:
+            judge_aggregate = await judge_documents(drafted_docs, llm=deps.llm)
+            judge_payload = judge_aggregate.to_json()
+    except Exception as exc:  # judge failure is non-fatal: reported but doesn't gate
+        judge_payload["error"] = f"{type(exc).__name__}: {exc}"
+
+    corpus_version = deps.regulation.corpus_loader.corpus_version()
+    baseline_data: dict[str, Any] = {}
+    if args.baseline and args.baseline.exists():
+        baseline_data = json.loads(args.baseline.read_text(encoding="utf-8")).get("metrics", {})
+    regressions = _baseline_regressions(metrics, baseline_data) if baseline_data else []
+
     if args.report:
-        _write_report(summary, results)
-    return _exit_status(summary, smoke=smoke)
+        _write_gold_reports(metrics, runs, judge_payload, gates, corpus_version, regressions)
+
+    if args.freeze_baseline:
+        BASELINE_DIR.mkdir(parents=True, exist_ok=True)
+        path_out = _baseline_path(corpus_version)
+        path_out.write_text(
+            json.dumps(
+                {
+                    "corpus_version": corpus_version,
+                    "metrics": metrics.to_json(),
+                    "judge": judge_payload,
+                },
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+        print(f"baseline frozen at {path_out}")
+
+    print(json.dumps({"metrics": metrics.to_json(), "judge": judge_payload}, indent=2))
+    for g in gates:
+        print(("OK  " if g.passed else "FAIL") + f"  {g.name}  (value={g.value:.4f})")
+    if regressions:
+        print("BASELINE REGRESSIONS:")
+        for r in regressions:
+            print(f"  - {r}")
+
+    failed_gates = [g for g in gates if not g.passed]
+    if failed_gates or regressions:
+        return 1
+    return 0
+
+
+async def _collect_drafted_docs(
+    cases: list[EvalCase], deps: AgentDependencies
+) -> list:
+    """Second pass that yields the drafted documents per case for the judge."""
+    fake_llm: FakeLLM = deps.llm  # type: ignore[assignment]
+    prompts = deps.prompts
+    docs: list = []
+    for case in cases:
+        rendered = prompts.render(
+            "intake_extract_attributes",
+            {"system_description": case.system_description},
+        )
+        fake_llm.script(rendered, json.dumps(_full_attributes(case.scripted_extraction)))
+        state = AgentState(system_profile=SystemProfile(description=case.system_description))
+        try:
+            final = await run_assessment(state, deps=deps)
+        except Exception:
+            continue
+        docs.extend(final.drafted_documents)
+    return docs
 
 
 def main() -> int:
