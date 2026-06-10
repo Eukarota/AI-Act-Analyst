@@ -28,21 +28,22 @@ patches:
     patch: |
       - op: replace
         path: /spec/rules/0/host
-        value: boussole.broker
-      - op: replace
-        path: /spec/rules/1/host
-        value: api.boussole.broker
+        value: aiact.ceres.broker
       - op: replace
         path: /spec/tls/0/hosts/0
-        value: boussole.broker
-      - op: replace
-        path: /spec/tls/0/hosts/1
-        value: api.boussole.broker
+        value: aiact.ceres.broker
 
-# Secrets are NEVER committed. Generate via:
-#   kubectl create secret generic boussole-backend-secrets \
-#     --from-literal=BOUSSOLE_DATABASE_URL=... \
-#     --from-literal=BOUSSOLE_LLM_URL=... \
-#     --from-literal=BOUSSOLE_LLM_MODEL=... \
-#     --from-literal=BOUSSOLE_LLM_API_KEY=... \
-#     -n boussole
+# Secrets are NEVER committed. Create the runtime secret with:
+#
+#   kubectl -n boussole create secret generic boussole-backend-secrets \
+#     --from-literal=BOUSSOLE_DATABASE_URL="$(terraform -chdir=infra/terraform output -raw postgres_dsn)" \
+#     --from-literal=BOUSSOLE_LLM_URL=https://api.mistral.ai/v1 \
+#     --from-literal=BOUSSOLE_LLM_MODEL=mistral-large-latest \
+#     --from-literal=MISTRAL_API_KEY=<key>
+#
+# For the self-hosted vLLM path (client missions), swap to:
+#     --from-literal=BOUSSOLE_LLM_URL=http://vllm.boussole.svc.cluster.local:8000 \
+#     --from-literal=BOUSSOLE_LLM_MODEL=mistralai/Mistral-7B-Instruct-v0.3 \
+#     --from-literal=MISTRAL_API_KEY=
+#
+# Same backend image; the LLMProvider port hides the difference.

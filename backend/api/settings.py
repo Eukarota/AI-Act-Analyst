@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,12 +21,22 @@ class ApiSettings(BaseSettings):
         env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
+        populate_by_name=True,
     )
 
-    # LLM
+    # LLM. Defaults target local Ollama for dev; .env / cluster secret
+    # override for La Plateforme or self-hosted vLLM in prod.
     llm_url: str = "http://localhost:11434"
     llm_model: str = "mistral:7b-instruct"
-    llm_api_key: str | None = None
+    llm_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("BOUSSOLE_LLM_API_KEY", "MISTRAL_API_KEY"),
+        description=(
+            "Bearer token for the OpenAI-compatible LLM endpoint. "
+            "Accepts MISTRAL_API_KEY as an alias so the same .env works "
+            "for the La Plateforme path."
+        ),
+    )
     llm_timeout_seconds: float = 60.0
 
     # Persistence

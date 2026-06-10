@@ -100,7 +100,13 @@ verdict de conformité.
                                              +---------------------+
 ```
 
-Aucune flèche ne sort de l'enveloppe OVHcloud EU.
+Le diagramme représente le **shape B** (mission client) : toute
+flèche reste à l'intérieur de l'enveloppe OVHcloud EU. Le **shape A**
+(démo publique, défaut) substitue Mistral La Plateforme à la dernière
+case ; la flèche d'inférence sort alors vers l'enveloppe Mistral (FR,
+EU). Les deux shapes restent souverains au sens Cloud Act ; ils
+diffèrent sur la frontière du périmètre auditable par l'acheteur. Voir
+ADR 0005 et section 7.
 
 ## 4. Où vivent les données
 
@@ -109,14 +115,16 @@ Aucune flèche ne sort de l'enveloppe OVHcloud EU.
 | Description du système d'IA (entrée client) | Postgres OVH (France) | IP client, jamais en dehors de l'UE. |
 | Texte consolidé du Règlement (UE) 2024/1689 | Postgres OVH (corpus indexé) | Texte public ; indexation locale pour le RAG. |
 | Embeddings (multilingual-e5-large) | Calcul local, stockage pgvector OVH | Modèle open-weight ; aucune API externe. |
-| Inférence LLM | vLLM sur GPU OVH (France) | Mistral 7B Instruct, poids ouverts, hébergement souverain. |
+| Inférence LLM (shape A, démo) | Mistral La Plateforme (Mistral AI, FR/EU) | EU-resident, hors juridiction Cloud Act, pas de plancher GPU. |
+| Inférence LLM (shape B, mission client) | vLLM sur GPU OVH (France) | Poids ouverts dans l'enveloppe OVH du client. |
 | Manifeste d'exécution (run_id, versions) | Postgres OVH | Audit ; persisté par run. |
 | Trace d'exécution (OpenTelemetry) | Postgres OVH + Prometheus local | Audit + observabilité. |
 | Artéfacts d'évaluation (rapports, baselines) | Object Storage OVH | Versionnage des numéros publiés. |
 
 Aucune dépendance d'inférence, d'embedding ou de stockage ne transite
-par une juridiction Cloud Act. Le compromis assumé est exposé dans la
-section 7 (Mistral Plateforme managée en alternative).
+par une juridiction Cloud Act, quel que soit le shape choisi. Le
+compromis entre shape A et shape B (frontière du périmètre auditable
+par l'acheteur, coût) est exposé en section 7.
 
 ## 5. Cartographie AI Act et RGPD
 
@@ -156,7 +164,8 @@ substitution du provider Terraform. Le code applicatif est identique.
 
 | Couche | Choix | Pourquoi |
 | --- | --- | --- |
-| Modèle | Mistral 7B Instruct via vLLM (ou Mistral La Plateforme EU) | Souverain, open-weight, EU-aligned. |
+| Modèle (shape A, défaut démo) | Mistral La Plateforme, `mistral-large-latest` | Managé EU, pay-per-token, pas de plancher GPU. |
+| Modèle (shape B, mission client) | Mistral 7B Instruct via vLLM sur GPU OVH | Poids ouverts entièrement dans le projet OVH du client. |
 | Embeddings | multilingual-e5-large auto-hébergé | FR + EN, inférence en juridiction. |
 | Stockage vectoriel | pgvector (Postgres) | Souverain, simple, pas de dépendance tierce. |
 | Recherche | Hybride dense + tsvector + RRF + reranker | Voir ADR 0004 (le texte légal exige le sparse). |
@@ -171,12 +180,16 @@ substitution du provider Terraform. Le code applicatif est identique.
 
 ## 7. Compromis assumés
 
-- **Mistral La Plateforme managée vs vLLM auto-hébergé**. La version
-  managée raccourcit la mise en production : pas de GPU à opérer. Le
-  fournisseur reste EU-resident (Mistral AI, France). Le choix par
-  défaut documenté est vLLM auto-hébergé pour fermer toute dépendance
-  managée ; le passage à La Plateforme est un changement de variable
-  d'environnement, pas de code.
+- **Mistral La Plateforme managée vs vLLM auto-hébergé**. Le défaut
+  documenté est **La Plateforme** pour la démo publique
+  `aiact.ceres.broker` : Mistral AI est incorporé en France, ses
+  endpoints sont EU-resident, le périmètre Cloud Act reste fermé, et
+  le coût est aligné sur l'usage (pas de plancher GPU). Pour une
+  mission client où la description du système ne doit pas quitter
+  l'enveloppe OVH du client, le shape B (vLLM auto-hébergé sur
+  instance GPU OVH) est sélectionné par variable d'environnement
+  (`BOUSSOLE_LLM_URL`), sans changement de code (ADR 0003, port
+  `LLMProvider`). L'acheteur choisit ; l'architecture absorbe.
 - **OVH Managed Postgres et pgvector**. L'extension `vector` est
   disponible sur les plans récents. Un test de disponibilité conditionne
   l'`apply` Terraform. Le fallback documenté est Postgres auto-hébergé

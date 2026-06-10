@@ -39,3 +39,20 @@ module "object_storage" {
   region       = var.region
   container    = "${local.name_prefix}-artifacts"
 }
+
+# Shape B (vLLM auto-hebergeable). Gated off by default so the public
+# demo, which runs on Mistral La Plateforme, has zero GPU bill.
+# Activate by setting `gpu_enabled = true` in tfvars + applying the
+# `infra/k8s/components/vllm/` kustomize component on the cluster.
+module "gpu_nodepool" {
+  source = "./modules/gpu_nodepool"
+  count  = var.gpu_enabled ? 1 : 0
+
+  service_name  = var.service_name
+  kube_id       = module.kapsule.kube_id
+  name          = "${local.name_prefix}-vllm"
+  flavor_name   = var.gpu_flavor
+  min_nodes     = var.gpu_pool_min_nodes
+  max_nodes     = var.gpu_pool_max_nodes
+  desired_nodes = var.gpu_pool_min_nodes
+}

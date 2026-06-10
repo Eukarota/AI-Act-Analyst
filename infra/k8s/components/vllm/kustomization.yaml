@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+# Shape B activation: self-hosted vLLM in-cluster on the GPU node pool
+# provisioned by `infra/terraform/modules/gpu_nodepool/`. NOT applied by
+# the default overlay. Include from an overlay only when gpu_enabled =
+# true on the Terraform side and the NVIDIA device plugin DaemonSet is
+# installed in the cluster.
+
+resources:
+  - deployment.yaml
+  - service.yaml

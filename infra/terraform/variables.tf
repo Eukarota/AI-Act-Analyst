@@ -83,6 +83,30 @@ variable "allowed_ingress_cidrs" {
   default     = []
 }
 
+variable "gpu_enabled" {
+  description = "Provision the GPU node pool for self-hosted vLLM (Shape B). Default false so the bill is unaffected for the public demo, which runs on Mistral La Plateforme (Shape A, ADR 0005)."
+  type        = bool
+  default     = false
+}
+
+variable "gpu_flavor" {
+  description = "OVH GPU flavor for the vLLM node pool. Ignored when gpu_enabled = false."
+  type        = string
+  default     = "t1-le-7"
+}
+
+variable "gpu_pool_min_nodes" {
+  description = "Minimum GPU nodes. 0 means scale-to-zero when no vLLM pod is scheduled."
+  type        = number
+  default     = 0
+}
+
+variable "gpu_pool_max_nodes" {
+  description = "Maximum GPU nodes."
+  type        = number
+  default     = 1
+}
+
 variable "tags" {
   description = "Free-form tags applied where the provider supports them."
   type        = map(string)
