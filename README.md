@@ -16,16 +16,6 @@ Boussole prend en entrée la description d'un système d'IA et produit un rappor
 
 Boussole n'est pas un avis juridique. Le rapport est cadré comme une pré-évaluation technique destinée à appuyer une revue qualifiée. C'est volontaire : le seul agent crédible auprès d'un service conformité est celui qui *refuse* de produire un verdict.
 
-### Pour les CTO et les recruteurs
-
-Ce projet démontre cinq compétences qui ne se voient pas dans un CV :
-
-1. **Conception d'agents en production**, pas de démos. Graphe d'état explicite (LangGraph), boucle de clarification bornée, taxonomie d'erreurs typées, échec explicite plutôt que dégradation silencieuse vers une réponse fabriquée.
-2. **Ingénierie de contexte mature.** Récupération hybride (dense + sparse) fusionnée par Reciprocal Rank Fusion, re-ranker cross-encoder, scope par nœud du graphe, injection des termes définis. Pas de RAG « top-k naïf ».
-3. **Discipline LLMOps.** Manifeste de run versionné, registre de prompts à sha-pinned, pipeline de corpus idempotente avec rapport de diff, contrôle d'ancrage identique en eval et en prod (même fonction, deux appelants).
-4. **Souveraineté tenue par construction.** Modèle, embeddings, base vectorielle, persistance : tout reste dans l'enveloppe OVHcloud UE. La sécurité n'est pas une promesse marketing, c'est une contrainte d'architecture vérifiable.
-5. **Modèle économique du portfolio = modèle économique du métier.** Provisionnement Terraform à la demande (15 min apply, 5 min destroy). Le coût de tourner la démo est de zéro entre deux sessions. C'est exactement comme une vraie mission d'évaluation AI Act se vend : un environnement dédié par engagement, détruit à la livraison.
-
 ### Fonctionnalités
 
 **Agent et orchestration**
@@ -233,16 +223,6 @@ Propriétaire. Contact Ceres Broker pour licensing.
 Boussole takes the description of an AI system as input and produces a structured report: risk tier under Regulation (EU) 2024/1689, applicable obligations, gap analysis against declared controls, drafted documentation skeletons (Annex IV, Article 50). Every legal claim is grounded to a specific passage of the consolidated text (article, paragraph, annex, recital).
 
 Boussole is not legal advice. The report is framed as a technical pre-assessment intended to support qualified legal review. That framing is deliberate: the only agent a compliance officer will trust is one that *refuses* to render a verdict.
-
-### For CTOs and recruiters
-
-This project demonstrates five engineering skills that don't show up on a CV:
-
-1. **Designing agents for production**, not demos. Explicit state graph (LangGraph), bounded clarify loop, typed error taxonomy, explicit failure rather than silent degradation to a fabricated answer.
-2. **Mature context engineering.** Hybrid retrieval (dense + sparse) fused via Reciprocal Rank Fusion, cross-encoder re-ranker, per-node retrieval scope, defined-terms injection. No naïve "top-k embedding lookup."
-3. **LLMOps discipline.** Versioned run manifest, sha-pinned prompt registry, idempotent corpus pipeline with diff report, grounding check identical in eval and in prod (one function, two callers).
-4. **Sovereignty as an architectural invariant.** Model, embeddings, vector store, persistence: every component stays inside the OVHcloud EU envelope. Sovereignty is not a marketing promise; it is a verifiable architectural constraint.
-5. **The portfolio's economics mirror the work's economics.** Terraform-driven provisioning (15 min apply, 5 min destroy). Cost-to-run between sessions: zero. That is exactly how a real AI Act assessment engagement is sold: dedicated environment per mission, torn down on delivery.
 
 ### Features
 
