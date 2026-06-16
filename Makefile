@@ -101,10 +101,21 @@ clean:
 # Local end-to-end demo for portfolio reviewers. Uses Mistral La Plateforme
 # (or local Ollama) for inference; no GPU required. Cost: 0 EUR for the
 # infra layer.
+#
+# Real RAG pipeline:
+#   1. Postgres + pgvector via docker compose.
+#   2. scripts/index_corpus.py downloads Regulation (EU) 2024/1689 from
+#      EUR-Lex, parses it into article/recital/annex chunks, embeds them
+#      with multilingual-e5-large (downloads ~1.1 GB on first run), upserts
+#      into pgvector. Idempotent: re-running with unchanged source is a
+#      no-op.
+#   3. Backend connects to pgvector at query time. Same e5 model embeds
+#      user queries; hybrid retrieval (dense + tsvector + RRF + reranker)
+#      returns cited passages.
 demo-local: up-db
 	@echo ">> waiting for postgres to be healthy..."
 	@until docker compose -f docker-compose.dev.yml ps postgres --format '{{.Health}}' | grep -q healthy; do sleep 1; done
-	@echo ">> indexing the AI Act corpus..."
+	@echo ">> indexing the AI Act corpus (downloads from EUR-Lex + multilingual-e5-large; first run ~5 minutes)..."
 	@uv run python scripts/index_corpus.py --regulation ai_act
 	@echo ""
 	@echo "============================================================"

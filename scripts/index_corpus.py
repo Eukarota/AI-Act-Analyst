@@ -105,11 +105,12 @@ async def main() -> int:
     if args.use_fake_embedder or args.target == "memory":
         embedder = FakeEmbedder()
     else:
-        # Phase 2 default still uses FakeEmbedder for now to avoid forcing the
-        # 1 GB e5-large download on every dev. Pass --no-fake-embedder via
-        # env override or wire the real one in Phase 3 when vLLM lands and we
-        # standardise model warm-up.
-        embedder = FakeEmbedder()
+        # Real path: multilingual-e5-large (1.1 GB) is downloaded on first run
+        # via sentence-transformers and cached under ~/.cache/huggingface.
+        # Embedding ~500-1000 AI Act chunks takes 1-2 minutes on CPU.
+        from backend.adapters.e5_embedder import MultilingualE5LargeEmbedder
+
+        embedder = MultilingualE5LargeEmbedder()
 
     diff = await _emit_diff(version, triples)
 

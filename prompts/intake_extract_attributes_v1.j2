@@ -1,12 +1,38 @@
-{# Phase 1 stub. Full prompt lands in Phase 5 (classify_risk MCP server). #}
 You are an attribute extractor. Read the system description below and return
-a JSON object matching the AttributeSet schema. Do not classify the system;
-do not cite the regulation; only extract attributes.
+a JSON object whose top-level keys are the attribute fields directly. Do NOT
+nest the response under any wrapper key (no "AttributeSet", no "attributes",
+no "result"). Do not classify the system; do not cite the regulation; only
+extract attributes.
 
 System description:
 {{ system_description }}
 
+Output schema (flat, top-level fields):
+- purpose (string, required): one short sentence summarizing what the system does.
+- domain (string or null): e.g. "employment", "healthcare", "public_sector".
+- deployment_context (string or null): where it is used.
+- user_population (string or null): who interacts with it.
+- autonomy_level (string or null): "fully_automated", "human_in_the_loop", "advisory".
+- human_oversight (string or null): description of the oversight mechanism.
+- data_types (list of strings, default []): kinds of data processed.
+- geography (string or null): jurisdiction(s) of deployment.
+- is_gpai_model (bool, default false): is this a general-purpose AI model itself.
+- built_on_gpai (bool, default false): is this a system built ON a GPAI model.
+- is_safety_component (bool, default false): safety component of a regulated product (Annex I).
+- regulated_product_legislation (string or null): the regulated product, if applicable.
+- biometric (bool, default false): processes biometric data.
+- affects_fundamental_rights (bool, default false): material impact on fundamental rights.
+- uses_subliminal_techniques (bool, default false): subliminal/manipulative techniques.
+- social_scoring (bool, default false): general-purpose social scoring of individuals.
+- real_time_remote_biometric_id (bool, default false): real-time remote biometric identification in public space.
+- emotion_recognition (bool, default false): emotion recognition.
+- interacts_with_humans (bool, default false): users interact directly with the system.
+- generates_synthetic_content (bool, default false): produces synthetic text, image, audio, video.
+- extras (object, default {}): any other extracted attribute that does not fit above.
+
 Constraints:
 - Use null for unknown values rather than guessing.
 - Booleans default to false unless the description supports true.
-- Output JSON only, no prose.
+- Output JSON only, no prose, no markdown fences, no preamble.
+- Top-level keys must be the field names listed above. Do not wrap the
+  object under any other key.

@@ -10,13 +10,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from backend.adapters.e5_embedder import MultilingualE5LargeEmbedder
 from backend.adapters.fake_embedder import FakeEmbedder
 from backend.adapters.in_memory_store import InMemoryVectorStore
+from backend.adapters.pgvector_store import PgVectorStore
 from backend.adapters.vllm_provider import SelfHostedVLLM
 from backend.agent.dependencies import AgentBudgets, AgentDependencies
 from backend.agent.state import Citation
 from backend.api.run_store import InMemoryRunStore, PostgresRunStore, RunStore
 from backend.api.settings import ApiSettings
+from backend.ports.embedder import Embedder
+from backend.ports.vector_store import VectorStore
 from backend.prompts.loader import default_registry
 from backend.rag.retrieval_cache import CachingRetriever
 from backend.rag.retrieve import HybridRetriever
@@ -46,18 +50,7 @@ async def build_wired_app(settings: ApiSettings | None = None) -> WiredApp:
     """Compose deps + run store from env. Heavy work happens here, not in routes."""
     cfg = settings or ApiSettings()
 
-    text = cfg.fixture_path.read_text(encoding="utf-8")
-    loader = AiActCorpusLoader.from_text(text)
-
-    embedder = FakeEmbedder()
-    store = InMemoryVectorStore(corpus_version=loader.corpus_version())
-    triples = list(loader.iter_chunks_with_scope(chunker=AiActChunkerConfig()))
-    vectors = await embedder.embed_documents([t[0] for t in triples])
-    rows: list[tuple[str, list[float], Citation, str | None]] = [
-        (chunk_text, vector, citation, scope)
-        for (chunk_text, citation, scope), vector in zip(triples, vectors, strict=True)
-    ]
-    await store.upsert(rows)
+    loader, embedder, store = await _build_corpus_layer(cfg)
     base_retriever = HybridRetriever(store=store, embedder=embedder)
     retriever = CachingRetriever(
         inner=base_retriever,
@@ -92,3 +85,45 @@ async def build_wired_app(settings: ApiSettings | None = None) -> WiredApp:
         run_store = pg
 
     return WiredApp(settings=cfg, deps=deps, run_store=run_store)
+
+
+async def _build_corpus_layer(
+    cfg: ApiSettings,
+) -> tuple[AiActCorpusLoader, Embedder, VectorStore]:
+    """
+    Two paths gated by BOUSSOLE_FIXTURE_CORPUS:
+
+    - True  (unit/CI):  fixture excerpt + FakeEmbedder + InMemoryVectorStore.
+                        Loaded and embedded at startup. No external services.
+    - False (prod/demo): real corpus already indexed in pgvector by
+                        scripts/index_corpus.py + MultilingualE5LargeEmbedder
+                        for query-time embeddings. The factory does NOT
+                        re-index; it just connects.
+    """
+    if cfg.fixture_corpus:
+        text = cfg.fixture_path.read_text(encoding="utf-8")
+        loader = AiActCorpusLoader.from_text(text)
+        fake_embedder = FakeEmbedder()
+        in_memory_store = InMemoryVectorStore(corpus_version=loader.corpus_version())
+        triples = list(loader.iter_chunks_with_scope(chunker=AiActChunkerConfig()))
+        vectors = await fake_embedder.embed_documents([t[0] for t in triples])
+        rows: list[tuple[str, list[float], Citation, str | None]] = [
+            (chunk_text, vector, citation, scope)
+            for (chunk_text, citation, scope), vector in zip(triples, vectors, strict=True)
+        ]
+        await in_memory_store.upsert(rows)
+        return loader, fake_embedder, in_memory_store
+
+    # Real path: corpus must already be indexed in pgvector.
+    # We read the cached EUR-Lex snapshot from disk (no re-fetch) so that
+    # corpus_version stays stable across runs and matches what the indexer
+    # wrote into pgvector.
+    loader = AiActCorpusLoader(language="EN", prefer_local=True)
+    e5 = MultilingualE5LargeEmbedder()
+    pg_store = PgVectorStore(
+        dsn=cfg.database_url,
+        dimension=e5.dimension,
+        regulation="ai_act",
+    )
+    await pg_store.connect()
+    return loader, e5, pg_store

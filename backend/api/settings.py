@@ -60,10 +60,12 @@ class ApiSettings(BaseSettings):
     # Corpus
     regulation: str = "ai_act"
     fixture_corpus: bool = Field(
-        default=True,
+        default=False,
         description=(
-            "Phase 7 default: load the committed fixture text instead of fetching "
-            "from EUR-Lex. Set False once the corpus pipeline has indexed the full text."
+            "True = load the small fixture excerpt + FakeEmbedder + InMemoryVectorStore "
+            "(unit tests, CI, smoke). False = read the real corpus from pgvector + "
+            "use multilingual-e5-large at query time (the default for the demo and prod). "
+            "When False, scripts/index_corpus.py must have been run first."
         ),
     )
 

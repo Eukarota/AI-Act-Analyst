@@ -49,6 +49,24 @@ class AttributeExtractionError(RuntimeError):
 
 _JSON_OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
 
+# Mistral Large (and some other chat models) wrap structured outputs under
+# the schema name, e.g. {"AttributeSet": {...real fields...}}. The prompt
+# tries to discourage this; the parser unwraps defensively so a single
+# misbehaving generation does not fail extraction.
+_KNOWN_ENVELOPE_KEYS = frozenset(
+    {"AttributeSet", "attributes", "attribute_set", "result", "data", "output"}
+)
+
+
+def _unwrap_envelope(parsed: dict[str, Any]) -> dict[str, Any]:
+    if len(parsed) != 1:
+        return parsed
+    only_key = next(iter(parsed))
+    inner = parsed[only_key]
+    if only_key in _KNOWN_ENVELOPE_KEYS and isinstance(inner, dict):
+        return inner
+    return parsed
+
 
 def _extract_json(text: str) -> dict[str, Any]:
     """
@@ -68,7 +86,7 @@ def _extract_json(text: str) -> dict[str, Any]:
     except json.JSONDecodeError:
         parsed = None
     if isinstance(parsed, dict):
-        return parsed
+        return _unwrap_envelope(parsed)
     match = _JSON_OBJECT_RE.search(text)
     if not match:
         raise AttributeExtractionError(f"LLM response did not contain a JSON object: {text[:200]}")
@@ -78,7 +96,7 @@ def _extract_json(text: str) -> dict[str, Any]:
         raise AttributeExtractionError(f"LLM response JSON was malformed: {exc.msg}") from exc
     if not isinstance(fallback, dict):
         raise AttributeExtractionError("LLM response JSON was not an object")
-    return fallback
+    return _unwrap_envelope(fallback)
 
 
 def _merge_attributes(
