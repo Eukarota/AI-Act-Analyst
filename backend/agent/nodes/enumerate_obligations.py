@@ -12,6 +12,7 @@ from backend.mcp_servers.lookup_obligations import (
     LookupObligationsArgs,
     lookup_obligations,
 )
+from regulations.ai_act.obligations.loader import localize_obligations
 
 NODE_NAME = "enumerate_obligations"
 
@@ -52,7 +53,10 @@ async def enumerate_obligations_node(
             latency_ms=elapsed_ms,
         )
 
+    obligations = localize_obligations(
+        list(result.obligations), state.system_profile.language
+    )
     return {
-        "obligations": result.obligations,
+        "obligations": obligations,
         "trace_events": list(emitter.sink),
     }

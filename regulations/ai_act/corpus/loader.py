@@ -90,19 +90,19 @@ class AiActCorpusLoader:
         if self.prefer_local:
             self._fetched = load_local_snapshot(language=self.language, cache_dir=self.cache_dir)
         else:
-            try:
-                self._fetched = fetch_consolidated(language=self.language, cache_dir=self.cache_dir)
-            except Exception:
-                # Fall back to local snapshot if present.
-                self._fetched = load_local_snapshot(
-                    language=self.language, cache_dir=self.cache_dir
-                )
+            # No silent fallback: a fetch failure must surface, otherwise the
+            # indexer will write a zero-chunk corpus and the agent will run
+            # against an empty RAG. If you genuinely want the local snapshot,
+            # pass prefer_local=True (or use --source local).
+            self._fetched = fetch_consolidated(language=self.language, cache_dir=self.cache_dir)
         return self._fetched
 
     def _ensure_parsed(self) -> list[ParsedSection]:
         if self._parsed is None:
             fetched = self._ensure_fetched()
-            self._parsed = parse_consolidated_text(fetched.plain_text)
+            self._parsed = parse_consolidated_text(
+                fetched.plain_text, language=self.language
+            )
         return self._parsed
 
     def corpus_version(self) -> str:

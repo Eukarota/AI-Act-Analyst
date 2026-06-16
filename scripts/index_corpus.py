@@ -44,6 +44,12 @@ from regulations.ai_act.corpus.loader import AiActChunkerConfig, AiActCorpusLoad
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
+# The consolidated AI Act has ~180 recitals, ~113 articles (broken into ~500
+# numbered paragraphs), and 13 annexes (~100 sub-points). Anything below this
+# floor is a parser or fetch failure, not a real corpus, and must not be
+# written to the vector store under a fresh corpus_version.
+_MIN_CHUNKS = 500
+
 
 @dataclass
 class IndexReport:
@@ -100,6 +106,15 @@ async def main() -> int:
     triples = list(loader.iter_chunks_with_scope(chunker=chunker_cfg))
     version = loader.corpus_version()
     print(f"[index_corpus] regulation=ai_act version={version} chunks={len(triples)}")
+
+    if len(triples) < _MIN_CHUNKS:
+        print(
+            f"[index_corpus] FATAL: only {len(triples)} chunks produced (expected "
+            f">= {_MIN_CHUNKS}). The fetch or parse step produced a partial corpus; "
+            f"refusing to index. Check regulations/ai_act/corpus/raw/ and re-run.",
+            file=sys.stderr,
+        )
+        return 3
 
     embedder: Embedder
     if args.use_fake_embedder or args.target == "memory":

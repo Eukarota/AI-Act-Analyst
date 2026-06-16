@@ -49,7 +49,7 @@ async def draft_docs_node(state: AgentState, *, deps: AgentDependencies) -> dict
                 attributes=attributes,
                 retrieved_passages=tuple(state.retrieved_passages),
                 documents_to_draft=(),
-                language="fr",
+                language=state.system_profile.language.lower(),
             ),
             templates=deps.regulation.document_templates,
             llm=deps.llm,

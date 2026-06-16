@@ -12,20 +12,15 @@
         "en": "EN"
       }
     },
-    "hero": {
-      "eyebrow": "Souverain · UE · Règlement (UE) 2024/1689",
-      "headline": "Une pré-évaluation AI Act, citée article par article.",
-      "subhead": "Décrivez votre système. Boussole identifie la classe de risque, énumère les obligations, signale les écarts et brouillonne la documentation. Chaque affirmation pointe vers le texte exact.",
-      "bullets": [
-        "Couche de règles déterministe sur Annexes I et III et Art. 5",
-        "Toute citation est ancrée dans un passage récupéré",
-        "Trace auditée: chaque outil, chaque passage, chaque décision"
-      ],
-      "notice": "Pré-évaluation technique destinée à appuyer une revue juridique qualifiée. Pas un conseil juridique."
-    },
     "intake": {
-      "heading": "Décrivez le système",
-      "description": "Plus la description est précise, moins l'agent posera de questions. Pas de données personnelles.",
+      "heading": "Évaluez un système IA face à l'AI Act",
+      "description": "Décrivez votre système. Boussole identifie la classe de risque, énumère les obligations applicables et cite chaque article concerné. Pas de données personnelles.",
+      "placeholder": "Décrivez le système. Plus la description est précise, moins l'agent posera de questions de clarification.",
+      "send": "Évaluer",
+      "send_running": "Évaluation…",
+      "advanced_open": "Paramètres avancés",
+      "advanced_close": "Masquer les paramètres",
+      "notice": "Pré-évaluation technique destinée à appuyer une revue juridique qualifiée. Pas un conseil juridique.",
       "labels": {
         "system_description": "Description du système",
         "system_description_placeholder": "Ex. Un outil interne qui filtre les CV pour la pré-sélection des candidats. Un recruteur humain valide les trois premiers candidats avant toute prise de contact.",
@@ -47,6 +42,7 @@
       "submit": "Lancer la pré-évaluation",
       "submit_running": "Évaluation en cours…",
       "reset": "Nouvelle évaluation",
+      "footer_disclaimer": "Pré-évaluation technique. Pas un avis juridique.",
       "samples": {
         "label": "Charger un exemple",
         "recruitment": "Recrutement",
@@ -97,6 +93,8 @@
       "grounding_pass": "Contrôle d'ancrage validé",
       "grounding_fail": "Contrôle d'ancrage en échec",
       "manifest_label": "Manifeste d'exécution",
+      "manifest_show": "Voir le manifeste technique",
+      "manifest_hide": "Masquer le manifeste",
       "manifest_fields": {
         "run_id": "Identifiant",
         "corpus_version": "Corpus",
@@ -106,17 +104,20 @@
         "timestamp": "Horodatage"
       },
       "classification": {
-        "heading": "Classification",
+        "heading": "Niveau de risque AI Act",
+        "subhead": "Tier que la couche de règles déterministe attribue au système, avec la règle qui s'est déclenchée et les articles cités à l'appui.",
         "fired_rule": "Règle déclenchée",
         "rationale": "Raisonnement",
         "supporting_refs": "Citations à l'appui"
       },
       "obligations": {
-        "heading": "Obligations applicables",
+        "heading": "Obligations à respecter",
+        "subhead": "Articles du Règlement à mettre en œuvre pour ce niveau de risque, filtrés par le rôle déclaré (fournisseur, déployeur, etc.).",
         "empty": "Aucune obligation matérielle ne découle d'une classification à risque minimal."
       },
       "gaps": {
-        "heading": "Analyse d'écart",
+        "heading": "Écart par rapport à l'existant",
+        "subhead": "Pour chaque obligation, ce que l'agent a trouvé ou non trouvé dans les contrôles déclarés.",
         "empty": "Aucun écart relevé à partir des contrôles déclarés.",
         "status": {
           "met": "Couvert",
@@ -126,14 +127,39 @@
         }
       },
       "drafted_documents": {
-        "heading": "Documentation préparée",
+        "heading": "Documentation à produire",
+        "subhead": "Squelettes générés par l'agent à partir des templates : Annexe IV (haut risque) et mentions Art. 50 (transparence). À reprendre par votre équipe.",
         "empty": "Pas de documentation à produire pour ce niveau de risque.",
         "preview_open": "Aperçu",
         "preview_close": "Replier"
       },
       "clarifications": {
         "heading": "Questions de clarification",
-        "intro": "L'agent a besoin de précisions sur les attributs suivants avant de pouvoir classer le système avec certitude."
+        "intro": "L'agent a besoin de précisions sur les attributs suivants avant de pouvoir classer le système avec certitude. Répondez ci-dessous pour relancer l'évaluation.",
+        "iterations_label": "itération(s)",
+        "answer_placeholder": "Votre réponse…",
+        "submit": "Relancer avec ces réponses",
+        "submitting": "Relance en cours…",
+        "missing_answer": "Répondez à au moins une question avant de relancer.",
+        "questions": {
+          "human_oversight": "Quel humain examine ou peut annuler les sorties du système, et selon quel processus ?",
+          "deployment_context": "Où le système est-il déployé ? Lieu de travail, service public, produit grand public, etc.",
+          "user_population": "À propos de qui le système prend-il des décisions, ou avec qui interagit-il ?"
+        },
+        "why": {
+          "human_oversight": "Détermine si l'humain dans la boucle suffit à mitiger le risque (Art. 14).",
+          "deployment_context": "Le contexte de déploiement fait basculer un même système entre plusieurs branches d'Annexe III.",
+          "user_population": "Les sujets vulnérables (mineurs, demandeurs d'emploi, patients) déclenchent des protections supplémentaires."
+        }
+      },
+      "rag_cube": {
+        "heading": "Vecteurs du Règlement (PCA 3D)",
+        "subhead_ready": "{matched} passage(s) consulté(s) sur {total} chunks indexés",
+        "subhead_loading": "Chargement de la projection des embeddings…",
+        "error": "Projection indisponible. Lancer scripts/project_chunks.py.",
+        "version_mismatch": "Projection désynchronisée du corpus servi",
+        "fullscreen": "Plein écran",
+        "exit_fullscreen": "Quitter le plein écran"
       },
       "trace": {
         "heading": "Trace d'exécution",
@@ -152,13 +178,24 @@
           "clarification": "Clarification",
           "error": "Erreur"
         },
+        "filters": {
+          "all": "Tout",
+          "retrieval": "Récupération",
+          "llm": "LLM",
+          "classification": "Classification",
+          "errors": "Erreurs"
+        },
         "empty": "Aucun événement enregistré.",
         "latency": "Latence"
       },
       "retrieved": {
-        "heading": "Passages récupérés",
+        "heading": "Extraits du Règlement consultés",
+        "subhead": "Passages du texte consolidé que l'agent a réellement lus pour produire ce rapport. Regroupés par étape de récupération.",
         "score": "Score",
-        "scope": "Portée",
+        "scope": "Étape",
+        "passage_count": "passage(s)",
+        "cited_in_report": "Cité dans le rapport",
+        "source_link": "EUR-Lex →",
         "empty": "Aucun passage récupéré pour cette évaluation."
       },
       "failures": {
@@ -170,6 +207,9 @@
       "network": "La connexion au backend a échoué. Vérifiez que le service tourne sur le port configuré.",
       "validation": "La description doit faire au moins dix caractères pour être traitée.",
       "unknown": "Une erreur inattendue est survenue."
+    },
+    "footer": {
+      "disclaimer": "Pré-évaluation technique. Pas un avis juridique."
     }
   },
   "en": {
@@ -182,20 +222,15 @@
       "tagline": "AI Act pre-assessment",
       "lang": { "fr": "FR", "en": "EN" }
     },
-    "hero": {
-      "eyebrow": "Sovereign · EU · Regulation (EU) 2024/1689",
-      "headline": "An AI Act pre-assessment, cited article by article.",
-      "subhead": "Describe your system. Boussole identifies the risk tier, enumerates the obligations, flags gaps, and drafts documentation. Every claim points to the exact passage.",
-      "bullets": [
-        "Deterministic rules layer over Annexes I and III and Article 5",
-        "Every citation is grounded in a retrieved passage",
-        "Audited trace: each tool, each passage, each decision"
-      ],
-      "notice": "Technical pre-assessment to support qualified legal review. Not legal advice."
-    },
     "intake": {
-      "heading": "Describe the system",
-      "description": "The richer the description, the fewer clarifying questions the agent will ask. No personal data.",
+      "heading": "Assess an AI system against the AI Act",
+      "description": "Describe your system. Boussole identifies the risk tier, enumerates the applicable obligations, and cites every article. No personal data.",
+      "placeholder": "Describe the system. The richer the description, the fewer clarifying questions the agent will ask.",
+      "send": "Assess",
+      "send_running": "Assessing…",
+      "advanced_open": "Advanced parameters",
+      "advanced_close": "Hide parameters",
+      "notice": "Technical pre-assessment to support qualified legal review. Not legal advice.",
       "labels": {
         "system_description": "System description",
         "system_description_placeholder": "E.g. An internal tool that filters CVs to shortlist candidates. A human recruiter validates the top three before any contact.",
@@ -267,6 +302,8 @@
       "grounding_pass": "Grounding check passed",
       "grounding_fail": "Grounding check failed",
       "manifest_label": "Run manifest",
+      "manifest_show": "Show run manifest",
+      "manifest_hide": "Hide run manifest",
       "manifest_fields": {
         "run_id": "Run ID",
         "corpus_version": "Corpus",
@@ -276,17 +313,20 @@
         "timestamp": "Timestamp"
       },
       "classification": {
-        "heading": "Classification",
+        "heading": "AI Act risk tier",
+        "subhead": "Tier the deterministic rules layer assigned to the system, with the rule that fired and the articles cited as support.",
         "fired_rule": "Fired rule",
         "rationale": "Rationale",
         "supporting_refs": "Supporting citations"
       },
       "obligations": {
-        "heading": "Applicable obligations",
+        "heading": "Obligations to meet",
+        "subhead": "Articles of the Regulation that apply at this risk tier, filtered by the declared actor role (provider, deployer, etc.).",
         "empty": "No material obligations attach to a minimal-risk classification."
       },
       "gaps": {
-        "heading": "Gap analysis",
+        "heading": "Gap against current controls",
+        "subhead": "For each obligation, what the agent found or did not find in the declared controls.",
         "empty": "No gaps found against the declared controls.",
         "status": {
           "met": "Met",
@@ -296,14 +336,39 @@
         }
       },
       "drafted_documents": {
-        "heading": "Drafted documentation",
+        "heading": "Documentation to produce",
+        "subhead": "Skeletons generated by the agent from templates: Annex IV (high-risk) and Art. 50 transparency notices. To be picked up by your team.",
         "empty": "No documentation required at this risk tier.",
         "preview_open": "Preview",
         "preview_close": "Collapse"
       },
       "clarifications": {
         "heading": "Clarifying questions",
-        "intro": "The agent needs the following attributes specified before it can classify the system with confidence."
+        "intro": "The agent needs the following attributes specified before it can classify the system with confidence. Answer below to re-run the assessment.",
+        "iterations_label": "iteration(s)",
+        "answer_placeholder": "Your answer…",
+        "submit": "Re-run with these answers",
+        "submitting": "Re-running…",
+        "missing_answer": "Answer at least one question before re-running.",
+        "questions": {
+          "human_oversight": "Who reviews or overrides the system's outputs, and through what process?",
+          "deployment_context": "Where is the system deployed? Workplace, public service, consumer product, etc.",
+          "user_population": "About whom does the system make decisions, or with whom does it interact?"
+        },
+        "why": {
+          "human_oversight": "Determines whether human-in-the-loop is enough to mitigate the risk (Art. 14).",
+          "deployment_context": "The deployment context shifts the same system across Annex III branches.",
+          "user_population": "Vulnerable subjects (minors, jobseekers, patients) trigger extra protections."
+        }
+      },
+      "rag_cube": {
+        "heading": "Regulation vectors (3D PCA)",
+        "subhead_ready": "{matched} passage(s) consulted out of {total} indexed chunks",
+        "subhead_loading": "Loading embedding projection…",
+        "error": "Projection not available. Run scripts/project_chunks.py.",
+        "version_mismatch": "Projection out of sync with the served corpus",
+        "fullscreen": "Fullscreen",
+        "exit_fullscreen": "Exit fullscreen"
       },
       "trace": {
         "heading": "Execution trace",
@@ -322,13 +387,24 @@
           "clarification": "Clarification",
           "error": "Error"
         },
+        "filters": {
+          "all": "All",
+          "retrieval": "Retrieval",
+          "llm": "LLM",
+          "classification": "Classification",
+          "errors": "Errors"
+        },
         "empty": "No events recorded.",
         "latency": "Latency"
       },
       "retrieved": {
-        "heading": "Retrieved passages",
+        "heading": "Excerpts of the Regulation consulted",
+        "subhead": "Passages from the consolidated text that the agent actually read to produce this report. Grouped by retrieval step.",
         "score": "Score",
-        "scope": "Scope",
+        "scope": "Step",
+        "passage_count": "passage(s)",
+        "cited_in_report": "Cited in report",
+        "source_link": "EUR-Lex →",
         "empty": "No passages retrieved for this assessment."
       },
       "failures": {
@@ -340,6 +416,9 @@
       "network": "Could not reach the backend. Make sure the API is running on the configured port.",
       "validation": "The description must be at least ten characters long to be processed.",
       "unknown": "An unexpected error occurred."
+    },
+    "footer": {
+      "disclaimer": "Technical pre-assessment. Not legal advice."
     }
   }
 }

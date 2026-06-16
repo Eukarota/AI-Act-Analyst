@@ -25,6 +25,9 @@ export function GapsList({ gaps }: Props) {
           {t("report.gaps.heading")}
           <span className="ml-2 text-foreground-dim">{gaps.length}</span>
         </CardTitle>
+        <p className="mt-1 text-[12px] text-foreground-dim leading-relaxed">
+          {t("report.gaps.subhead")}
+        </p>
       </CardHeader>
       <CardContent>
         {gaps.length === 0 ? (

@@ -1,4 +1,4 @@
-.PHONY: help install lint type test smoke index-corpus dev-backend dev-backend-fake \
+.PHONY: help install lint type test smoke index-corpus project-chunks dev-backend dev-backend-fake \
         dev-frontend frontend-build frontend-lint eval eval-smoke eval-freeze \
         reindex-and-eval clean up-db down-db up-llm down-llm down integration-test \
         demo-local demo-local-down demo-up demo-down
@@ -49,6 +49,12 @@ integration-test:
 
 index-corpus:
 	uv run python scripts/index_corpus.py --regulation ai_act
+
+# 3D projection of the indexed embeddings for the RAG cube UI. Run after
+# any successful `make index-corpus` so the projection matches the corpus
+# the backend will serve.
+project-chunks:
+	uv run python scripts/project_chunks.py
 
 up-db:
 	docker compose -f docker-compose.dev.yml up -d postgres
@@ -115,8 +121,10 @@ clean:
 demo-local: up-db
 	@echo ">> waiting for postgres to be healthy..."
 	@until docker compose -f docker-compose.dev.yml ps postgres --format '{{.Health}}' | grep -q healthy; do sleep 1; done
-	@echo ">> indexing the AI Act corpus (downloads from EUR-Lex + multilingual-e5-large; first run ~5 minutes)..."
+	@echo ">> indexing the AI Act corpus (downloads OJ XHTML from the EU Publications Office cellar + multilingual-e5-large; first run ~5 minutes)..."
 	@uv run python scripts/index_corpus.py --regulation ai_act
+	@echo ">> projecting embeddings to 3D for the RAG cube UI..."
+	@uv run python scripts/project_chunks.py
 	@echo ""
 	@echo "============================================================"
 	@echo "Local demo ready. In two separate terminals, run:"

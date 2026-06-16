@@ -1,5 +1,9 @@
 "use client";
 
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+
 import { useTranslation } from "@/lib/language";
 import type { AssessmentReport } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +15,7 @@ interface Props {
 
 export function ReportHeader({ report }: Props) {
   const { t } = useTranslation();
+  const [showManifest, setShowManifest] = useState(false);
   const status = t(`report.header_status.${report.status}`);
 
   return (
@@ -36,30 +41,62 @@ export function ReportHeader({ report }: Props) {
         </Badge>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-x-8 gap-y-3 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
-        <ManifestRow label={t("report.manifest_fields.run_id")} value={report.manifest.run_id} mono />
-        <ManifestRow label={t("report.manifest_fields.model_id")} value={report.manifest.model_id} />
-        <ManifestRow
-          label={t("report.manifest_fields.corpus_version")}
-          value={report.manifest.corpus_version}
-        />
-        <ManifestRow
-          label={t("report.manifest_fields.prompt_set_version")}
-          value={report.manifest.prompt_set_version}
-        />
-        <ManifestRow
-          label={t("report.manifest_fields.rules_version")}
-          value={report.manifest.rules_version}
-        />
-        <ManifestRow
-          label={t("report.manifest_fields.timestamp")}
-          value={new Date(report.manifest.timestamp).toLocaleString()}
-        />
+      <div className="mt-6">
+        <button
+          type="button"
+          onClick={() => setShowManifest((v) => !v)}
+          className="inline-flex items-center gap-1.5 text-[11px] text-foreground-dim hover:text-foreground-muted transition-colors"
+        >
+          <ChevronDown
+            className={`h-3.5 w-3.5 transition-transform duration-300 ${
+              showManifest ? "rotate-180" : ""
+            }`}
+          />
+          {showManifest ? t("report.manifest_hide") : t("report.manifest_show")}
+        </button>
+        <AnimatePresence initial={false}>
+          {showManifest && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="mt-4 grid grid-cols-1 gap-x-8 gap-y-3 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
+                <ManifestRow
+                  label={t("report.manifest_fields.run_id")}
+                  value={report.manifest.run_id}
+                  mono
+                />
+                <ManifestRow
+                  label={t("report.manifest_fields.model_id")}
+                  value={report.manifest.model_id}
+                />
+                <ManifestRow
+                  label={t("report.manifest_fields.corpus_version")}
+                  value={report.manifest.corpus_version}
+                />
+                <ManifestRow
+                  label={t("report.manifest_fields.prompt_set_version")}
+                  value={report.manifest.prompt_set_version}
+                />
+                <ManifestRow
+                  label={t("report.manifest_fields.rules_version")}
+                  value={report.manifest.rules_version}
+                />
+                <ManifestRow
+                  label={t("report.manifest_fields.timestamp")}
+                  value={new Date(report.manifest.timestamp).toLocaleString()}
+                />
+              </div>
+              <p className="mt-6 text-[12px] text-foreground-dim leading-relaxed max-w-3xl">
+                {report.pre_assessment_notice}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-
-      <p className="mt-8 text-[12px] text-foreground-dim leading-relaxed max-w-3xl">
-        {report.pre_assessment_notice}
-      </p>
     </div>
   );
 }

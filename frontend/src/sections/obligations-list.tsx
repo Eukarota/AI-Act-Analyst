@@ -18,6 +18,9 @@ export function ObligationsList({ obligations }: Props) {
           {t("report.obligations.heading")}
           <span className="ml-2 text-foreground-dim">{obligations.length}</span>
         </CardTitle>
+        <p className="mt-1 text-[12px] text-foreground-dim leading-relaxed">
+          {t("report.obligations.subhead")}
+        </p>
       </CardHeader>
       <CardContent>
         {obligations.length === 0 ? (

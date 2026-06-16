@@ -107,6 +107,7 @@ async def assess(
             description=payload.system_description,
             declared_controls=list(payload.declared_controls),
             declared_actor_role=payload.declared_actor_role,
+            language=payload.language,
         )
     )
 

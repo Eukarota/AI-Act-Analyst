@@ -7,6 +7,8 @@ forcing schema changes inside the agent core, and vice versa.
 
 from __future__ import annotations
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 from backend.agent.report import AssessmentReport
@@ -28,6 +30,13 @@ class AssessRequest(BaseModel):
     declared_actor_role: ActorRole | None = Field(
         default=None,
         description="Provider, deployer, etc. Filters obligations in enumerate_obligations.",
+    )
+    language: Literal["EN", "FR"] = Field(
+        default="EN",
+        description=(
+            "Output language for backend-generated text (obligation summaries, "
+            "classification rationale, drafted documents)."
+        ),
     )
 
 

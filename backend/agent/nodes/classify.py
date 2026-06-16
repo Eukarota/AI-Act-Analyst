@@ -16,6 +16,7 @@ from backend.agent.errors import LowExtractionConfidence
 from backend.agent.nodes._common import emit_tool_call, emit_tool_return, emitter_for
 from backend.agent.state import AgentState
 from backend.agent.trace import TraceEventKind
+from regulations.ai_act.rules._rationale_fr import localize_classification
 
 NODE_NAME = "classify"
 
@@ -39,6 +40,9 @@ async def classify_node(state: AgentState, *, deps: AgentDependencies) -> dict[s
             },
         )
         classification = deps.regulation.classifier_rules.classify(attributes)
+        classification = localize_classification(
+            classification, state.system_profile.language
+        )
         elapsed_ms = (time.perf_counter() - started) * 1000.0
         emit_tool_return(
             emitter,

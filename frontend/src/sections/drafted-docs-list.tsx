@@ -32,6 +32,9 @@ export function DraftedDocsList({ documents }: Props) {
           {t("report.drafted_documents.heading")}
           <span className="ml-2 text-foreground-dim">{documents.length}</span>
         </CardTitle>
+        <p className="mt-1 text-[12px] text-foreground-dim leading-relaxed">
+          {t("report.drafted_documents.subhead")}
+        </p>
       </CardHeader>
       <CardContent>
         {documents.length === 0 ? (

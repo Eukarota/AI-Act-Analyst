@@ -15,6 +15,9 @@ export function ClassificationCard({ classification }: Props) {
     <Card>
       <CardHeader>
         <CardTitle>{t("report.classification.heading")}</CardTitle>
+        <p className="mt-1 text-[12px] text-foreground-dim leading-relaxed">
+          {t("report.classification.subhead")}
+        </p>
       </CardHeader>
       <CardContent className="space-y-5">
         <div>

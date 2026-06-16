@@ -20,6 +20,7 @@ export interface AssessPayload {
   system_description: string;
   declared_controls: string[];
   declared_actor_role: ActorRole | null;
+  language: "EN" | "FR";
 }
 
 export async function postAssess(payload: AssessPayload): Promise<AssessResponse> {

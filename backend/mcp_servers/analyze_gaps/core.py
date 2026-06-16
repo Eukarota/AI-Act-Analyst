@@ -89,6 +89,27 @@ class AnalyzeGapsArgs:
     declared_controls: tuple[str, ...]
     actor_role: ActorRole | None = None
     keyword_match_threshold: int = 2
+    language: str = "EN"
+
+
+_NOTE_TEMPLATES: dict[str, dict[str, str]] = {
+    "EN": {
+        "covered": "Matched declared control for {ref}.",
+        "partial": "Possible match found for {ref}; review required.",
+        "missing": "No declared control found for {ref}; flag for follow-up.",
+    },
+    "FR": {
+        "covered": "Contrôle déclaré couvrant {ref}.",
+        "partial": "Correspondance possible pour {ref} ; à vérifier.",
+        "missing": "Aucun contrôle déclaré pour {ref} ; à suivre.",
+    },
+}
+
+
+def _note_for(language: str, status: str, ref: str) -> str:
+    lang = language.upper()
+    templates = _NOTE_TEMPLATES.get(lang, _NOTE_TEMPLATES["EN"])
+    return templates[status].format(ref=ref)
 
 
 @dataclass(frozen=True)
@@ -147,18 +168,7 @@ async def analyze_gaps(args: AnalyzeGapsArgs) -> AnalyzeGapsResult:
             GapFinding(
                 obligation_id=obligation.obligation_id,
                 status=best_status,
-                notes=(
-                    f"Matched declared control for {obligation.article_ref}."
-                    if best_status == "covered"
-                    else (
-                        f"Possible match found for {obligation.article_ref}; review required."
-                        if best_status == "partial"
-                        else (
-                            f"No declared control found for {obligation.article_ref}; "
-                            "flag for follow-up."
-                        )
-                    )
-                ),
+                notes=_note_for(args.language, best_status, obligation.article_ref),
                 declared_evidence=best_evidence,
             )
         )

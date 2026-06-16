@@ -38,6 +38,7 @@ async def gap_analysis_node(state: AgentState, *, deps: AgentDependencies) -> di
                 required=tuple(state.obligations),
                 declared_controls=declared,
                 actor_role=actor_role,
+                language=state.system_profile.language,
             )
         )
         elapsed_ms = (time.perf_counter() - started) * 1000.0

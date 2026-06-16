@@ -18,19 +18,43 @@ from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from enum import StrEnum
 
-# Recitals are introduced by "Whereas:" and each starts with a number in
-# parentheses on its own logical line. Body is whatever follows until the next
-# "(N)" or until the first "Article 1" heading (the enacting terms).
+# Recitals are introduced by "Whereas:" / "considérant ce qui suit:" and each
+# starts with a number in parentheses on its own logical line.
 _RECITAL_HEAD_RE = re.compile(r"(?m)^\s*\((\d+)\)\s*")
 
-# Article headings: "Article 1", "Article 24", optionally followed by a title.
-_ARTICLE_HEAD_RE = re.compile(r"(?m)^\s*Article\s+(\d+[a-z]?)\s*$")
-
-# Annex headings: "ANNEX I", "ANNEX III", up to "ANNEX XIII". Roman numerals.
-_ANNEX_HEAD_RE = re.compile(r"(?m)^\s*ANNEX\s+([IVXLCM]+)\s*$")
-
 # Article paragraph numbering: "1.", "2.", ..., possibly with sub-points "(a)".
+# The OJ converter sometimes emits a single non-breaking space after the dot,
+# normalized to ASCII before we hit this regex.
 _ARTICLE_PARA_RE = re.compile(r"(?m)^\s*(\d{1,2})\.\s+")
+
+
+@dataclass(frozen=True)
+class _LanguageGrammar:
+    article_head: re.Pattern[str]
+    annex_head: re.Pattern[str]
+    # FR uses "Article premier" for Article 1; we normalize it to "1" here so
+    # the rest of the pipeline keeps the same article identifiers as EN.
+    article_one_alias: str | None
+    article_one_canonical: str
+
+
+_EN = _LanguageGrammar(
+    article_head=re.compile(r"(?m)^\s*Article\s+(\d+[a-z]?)\s*$"),
+    annex_head=re.compile(r"(?m)^\s*ANNEX\s+([IVXLCM]+)\s*$"),
+    article_one_alias=None,
+    article_one_canonical="1",
+)
+
+_FR = _LanguageGrammar(
+    # FR matches the same "Article N" form for N >= 2, plus "Article premier"
+    # for N = 1. We capture the literal "premier" and rewrite to "1" below.
+    article_head=re.compile(r"(?m)^\s*Article\s+(\d+[a-z]?|premier)\s*$"),
+    annex_head=re.compile(r"(?m)^\s*ANNEXE\s+([IVXLCM]+)\s*$"),
+    article_one_alias="premier",
+    article_one_canonical="1",
+)
+
+_GRAMMARS: dict[str, _LanguageGrammar] = {"EN": _EN, "FR": _FR}
 
 
 class SectionKind(StrEnum):
@@ -52,7 +76,7 @@ class ParsedSection:
     title: str | None = None
 
 
-def parse_consolidated_text(text: str) -> list[ParsedSection]:
+def parse_consolidated_text(text: str, *, language: str = "EN") -> list[ParsedSection]:
     """
     Parse the full consolidated text into sections.
 
@@ -62,14 +86,18 @@ def parse_consolidated_text(text: str) -> list[ParsedSection]:
     inside annexes are not articles; segregating regions first prevents that
     class of false positive.
     """
-    enacting_start = _find_enacting_start(text)
+    grammar = _GRAMMARS.get(language.upper())
+    if grammar is None:
+        raise ValueError(f"unsupported parser language: {language!r}")
+
+    enacting_start = _find_enacting_start(text, grammar)
     if enacting_start is None:
         return list(_parse_recitals(text))
 
     preamble = text[:enacting_start]
     after = text[enacting_start:]
 
-    annex_match = _ANNEX_HEAD_RE.search(after)
+    annex_match = grammar.annex_head.search(after)
     if annex_match:
         articles_region = after[: annex_match.start()]
         annexes_region = after[annex_match.start() :]
@@ -79,15 +107,21 @@ def parse_consolidated_text(text: str) -> list[ParsedSection]:
 
     sections: list[ParsedSection] = []
     sections.extend(_parse_recitals(preamble))
-    sections.extend(_parse_articles(articles_region))
-    sections.extend(_parse_annexes(annexes_region))
+    sections.extend(_parse_articles(articles_region, grammar))
+    sections.extend(_parse_annexes(annexes_region, grammar))
     return sections
 
 
-def _find_enacting_start(text: str) -> int | None:
+def _canonical_article(raw: str, grammar: _LanguageGrammar) -> str:
+    if grammar.article_one_alias is not None and raw == grammar.article_one_alias:
+        return grammar.article_one_canonical
+    return raw
+
+
+def _find_enacting_start(text: str, grammar: _LanguageGrammar) -> int | None:
     """Return the index of the first 'Article 1' heading, or None if absent."""
-    for match in _ARTICLE_HEAD_RE.finditer(text):
-        if match.group(1) == "1":
+    for match in grammar.article_head.finditer(text):
+        if _canonical_article(match.group(1), grammar) == "1":
             return match.start()
     return None
 
@@ -108,10 +142,10 @@ def _parse_recitals(preamble: str) -> Iterator[ParsedSection]:
         )
 
 
-def _parse_articles(region: str) -> Iterator[ParsedSection]:
-    matches = list(_ARTICLE_HEAD_RE.finditer(region))
+def _parse_articles(region: str, grammar: _LanguageGrammar) -> Iterator[ParsedSection]:
+    matches = list(grammar.article_head.finditer(region))
     for i, match in enumerate(matches):
-        article = match.group(1)
+        article = _canonical_article(match.group(1), grammar)
         start = match.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(region)
         block = region[start:end].strip()
@@ -154,8 +188,8 @@ def _parse_articles(region: str) -> Iterator[ParsedSection]:
             )
 
 
-def _parse_annexes(region: str) -> Iterator[ParsedSection]:
-    matches = list(_ANNEX_HEAD_RE.finditer(region))
+def _parse_annexes(region: str, grammar: _LanguageGrammar) -> Iterator[ParsedSection]:
+    matches = list(grammar.annex_head.finditer(region))
     for i, match in enumerate(matches):
         roman = match.group(1)
         start = match.end()

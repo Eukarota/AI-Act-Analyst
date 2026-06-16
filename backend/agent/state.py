@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from enum import StrEnum
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -180,6 +180,10 @@ class SystemProfile(BaseModel):
     declared_controls: list[str] = Field(default_factory=list)
     declared_actor_role: ActorRole | None = None
     attributes: AttributeSet | None = None
+    # Output language for backend-generated text (obligation summaries,
+    # classification rationale, drafted documents). The retrieved corpus
+    # passages stay in their indexed language (EN by default).
+    language: Literal["EN", "FR"] = "EN"
 
 
 class RunManifest(Frozen):

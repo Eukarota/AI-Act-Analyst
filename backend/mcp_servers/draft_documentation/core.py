@@ -52,25 +52,35 @@ class DraftDocumentationResult:
     documents: list[DraftedDocument]
 
 
-_TEMPLATE_BY_KIND: dict[str, tuple[str, str]] = {
-    "annex_iv": ("annex_iv_skeleton", "Annex IV — Technical Documentation Skeleton"),
-    "art_50_interaction": (
-        "art_50_interaction_disclosure",
-        "Art. 50(1) — Interaction Disclosure",
-    ),
-    "art_50_synthetic": (
-        "art_50_synthetic_content_notice",
-        "Art. 50(2) — Synthetic Content Notice",
-    ),
-    "art_50_emotion": (
-        "art_50_emotion_biometric_notice",
-        "Art. 50(3) — Emotion or Biometric Categorisation Notice",
-    ),
-    "art_50_deepfake": (
-        "art_50_deepfake_disclosure",
-        "Art. 50(4) — Deepfake Disclosure",
-    ),
+_TEMPLATE_BY_KIND: dict[str, str] = {
+    "annex_iv": "annex_iv_skeleton",
+    "art_50_interaction": "art_50_interaction_disclosure",
+    "art_50_synthetic": "art_50_synthetic_content_notice",
+    "art_50_emotion": "art_50_emotion_biometric_notice",
+    "art_50_deepfake": "art_50_deepfake_disclosure",
 }
+
+_TITLES_BY_LANG: dict[str, dict[str, str]] = {
+    "en": {
+        "annex_iv": "Annex IV: Technical Documentation Skeleton",
+        "art_50_interaction": "Art. 50(1): Interaction Disclosure",
+        "art_50_synthetic": "Art. 50(2): Synthetic Content Notice",
+        "art_50_emotion": "Art. 50(3): Emotion or Biometric Categorisation Notice",
+        "art_50_deepfake": "Art. 50(4): Deepfake Disclosure",
+    },
+    "fr": {
+        "annex_iv": "Annexe IV : squelette de documentation technique",
+        "art_50_interaction": "Art. 50(1) : information d'interaction avec une IA",
+        "art_50_synthetic": "Art. 50(2) : marquage de contenu synthétique",
+        "art_50_emotion": "Art. 50(3) : information de reconnaissance d'émotion ou catégorisation biométrique",
+        "art_50_deepfake": "Art. 50(4) : information de contenu hypertruqué",
+    },
+}
+
+
+def _title_for(kind: str, language: str) -> str:
+    titles = _TITLES_BY_LANG.get(language.lower(), _TITLES_BY_LANG["en"])
+    return titles.get(kind, kind)
 
 
 def _suggest_kinds(classification: ClassificationResult) -> tuple[str, ...]:
@@ -128,7 +138,8 @@ async def draft_documentation(
     for kind in kinds:
         if kind not in _TEMPLATE_BY_KIND:
             raise ValueError(f"draft_documentation: unknown document kind {kind!r}")
-        template_name, title = _TEMPLATE_BY_KIND[kind]
+        template_name = _TEMPLATE_BY_KIND[kind]
+        title = _title_for(kind, args.language)
         context: dict[str, object] = {
             "system_name": args.system_name,
             "classification": args.classification,
