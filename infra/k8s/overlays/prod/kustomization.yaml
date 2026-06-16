@@ -37,7 +37,7 @@ patches:
 #
 #   kubectl -n boussole create secret generic boussole-backend-secrets \
 #     --from-literal=BOUSSOLE_DATABASE_URL="$(terraform -chdir=infra/terraform output -raw postgres_dsn)" \
-#     --from-literal=BOUSSOLE_LLM_URL=https://api.mistral.ai/v1 \
+#     --from-literal=BOUSSOLE_LLM_URL=https://api.mistral.ai \
 #     --from-literal=BOUSSOLE_LLM_MODEL=mistral-large-latest \
 #     --from-literal=MISTRAL_API_KEY=<key>
 #

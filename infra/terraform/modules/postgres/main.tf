@@ -9,31 +9,30 @@ terraform {
     ovh = {
       source = "ovh/ovh"
     }
-    random = {
-      source = "hashicorp/random"
-    }
   }
-}
-
-resource "random_password" "app_password" {
-  length      = 32
-  special     = true
-  min_lower   = 4
-  min_upper   = 4
-  min_numeric = 4
-  min_special = 2
 }
 
 resource "ovh_cloud_project_database" "this" {
   service_name = var.service_name
   description  = var.name
   engine       = "postgresql"
-  version      = "16"
+  version      = var.engine_version
   plan         = var.plan
   flavor       = var.flavor
+  disk_size    = var.disk_size
 
   nodes {
     region = var.region
+  }
+
+  # Inline IP allowlist. The standalone ovh_cloud_project_database_ip_restriction
+  # resource is deprecated in provider 0.51+.
+  dynamic "ip_restrictions" {
+    for_each = toset(var.allowed_ingress_cidrs)
+    content {
+      ip          = ip_restrictions.value
+      description = "operator-allowlist"
+    }
   }
 }
 
@@ -41,21 +40,13 @@ resource "ovh_cloud_project_database_postgresql_user" "app" {
   service_name = var.service_name
   cluster_id   = ovh_cloud_project_database.this.id
   name         = "boussole_app"
-  password     = random_password.app_password.result
+  # The provider generates and rotates the password; we read it from the
+  # resource attribute below in outputs.tf.
 }
 
 resource "ovh_cloud_project_database_database" "main" {
   service_name = var.service_name
   cluster_id   = ovh_cloud_project_database.this.id
-  name         = "boussole"
-}
-
-resource "ovh_cloud_project_database_ip_restriction" "operators" {
-  for_each = toset(var.allowed_ingress_cidrs)
-
-  service_name = var.service_name
   engine       = "postgresql"
-  cluster_id   = ovh_cloud_project_database.this.id
-  ip           = each.value
-  description  = "operator-allowlist"
+  name         = "boussole"
 }

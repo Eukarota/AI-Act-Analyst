@@ -7,7 +7,7 @@ output "dsn" {
   value = format(
     "postgresql://%s:%s@%s:%d/%s?sslmode=require",
     ovh_cloud_project_database_postgresql_user.app.name,
-    random_password.app_password.result,
+    ovh_cloud_project_database_postgresql_user.app.password,
     local.primary_endpoint.domain,
     local.primary_endpoint.port,
     ovh_cloud_project_database_database.main.name,

@@ -19,9 +19,13 @@ text-generation-inference all implement identically.
 
 Determinism:
   At temperature=0 vLLM does greedy decoding -> deterministic output for the
-  same (prompt, model_id, server build). We additionally pass seed where the
-  server accepts it. The determinism check is a behavioural test, not a
-  contractual guarantee against minor server upgrades.
+  same (prompt, model_id, server build). vLLM and Ollama additionally accept
+  a `seed` field; Mistral La Plateforme rejects it with a 422 (strict
+  schema). Because of that, `send_seed` defaults to False: temperature=0 is
+  enough for determinism, and the request is portable across all three
+  servers. Callers running against vLLM or Ollama can opt back in by
+  constructing with `send_seed=True` (or by setting
+  BOUSSOLE_LLM_SEND_SEED=true in the environment).
 """
 
 from __future__ import annotations
@@ -34,6 +38,7 @@ from backend.ports.llm_provider import LLMResponse, LLMUsage
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
 DEFAULT_DETERMINISM_SEED = 7
+DEFAULT_SEND_SEED = False
 
 
 class LLMProviderError(RuntimeError):
@@ -51,12 +56,14 @@ class SelfHostedVLLM:
         api_key: str | None = None,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         seed: int | None = DEFAULT_DETERMINISM_SEED,
+        send_seed: bool = DEFAULT_SEND_SEED,
         client: httpx.AsyncClient | None = None,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model_id = model_id
         self.timeout_seconds = timeout_seconds
         self.seed = seed
+        self.send_seed = send_seed
         self._api_key = api_key
         self._client = client
         self._owns_client = client is None
@@ -127,7 +134,7 @@ class SelfHostedVLLM:
         }
         if stop:
             payload["stop"] = stop
-        if self.seed is not None and temperature == 0.0:
+        if self.send_seed and self.seed is not None and temperature == 0.0:
             payload["seed"] = self.seed
 
         try:

@@ -38,6 +38,14 @@ class ApiSettings(BaseSettings):
         ),
     )
     llm_timeout_seconds: float = 60.0
+    llm_send_seed: bool = Field(
+        default=False,
+        description=(
+            "Send the `seed` field on chat completion requests. False by "
+            "default because Mistral La Plateforme rejects it; flip to true "
+            "when targeting vLLM or Ollama if the extra pinning is wanted."
+        ),
+    )
 
     # Persistence
     database_url: str = Field(

@@ -46,7 +46,7 @@ correct for a different buyer:
 **Shape A: La Plateforme (default for the public demo at
 `aiact.ceres.broker`).**
 
-- `BOUSSOLE_LLM_URL=https://api.mistral.ai/v1`
+- `BOUSSOLE_LLM_URL=https://api.mistral.ai`
 - `BOUSSOLE_LLM_MODEL=mistral-large-latest`
 - Managed Mistral endpoint, Mistral-incorporated and EU-hosted, no
   Cloud Act exposure.

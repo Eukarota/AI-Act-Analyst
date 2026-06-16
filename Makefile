@@ -1,6 +1,7 @@
 .PHONY: help install lint type test smoke index-corpus dev-backend dev-backend-fake \
         dev-frontend frontend-build frontend-lint eval eval-smoke eval-freeze \
-        reindex-and-eval clean up-db down-db up-llm down-llm down integration-test
+        reindex-and-eval clean up-db down-db up-llm down-llm down integration-test \
+        demo-local demo-local-down demo-up demo-down
 
 help:
 	@echo "Boussole targets:"
@@ -20,6 +21,12 @@ help:
 	@echo "  eval-smoke        Run the 5-case smoke eval (fast CI sanity check)"
 	@echo "  eval              Run the gold eval (§12.1 gates) against the frozen baseline"
 	@echo "  eval-freeze       Re-freeze the baseline at the current corpus_version"
+	@echo ""
+	@echo "Demo targets:"
+	@echo "  demo-local        Bring up Postgres + index corpus locally; next steps printed"
+	@echo "  demo-local-down   Tear down the local demo (stops Postgres + vLLM containers)"
+	@echo "  demo-up           Provision the full prod stack on OVH (terraform apply)"
+	@echo "  demo-down         Destroy the prod stack on OVH (terraform destroy)"
 
 install:
 	uv sync --all-extras
@@ -90,3 +97,48 @@ reindex-and-eval:
 
 clean:
 	rm -rf .venv .ruff_cache .mypy_cache .pytest_cache **/__pycache__ dist build
+
+# Local end-to-end demo for portfolio reviewers. Uses Mistral La Plateforme
+# (or local Ollama) for inference; no GPU required. Cost: 0 EUR for the
+# infra layer.
+demo-local: up-db
+	@echo ">> waiting for postgres to be healthy..."
+	@until docker compose -f docker-compose.dev.yml ps postgres --format '{{.Health}}' | grep -q healthy; do sleep 1; done
+	@echo ">> indexing the AI Act corpus..."
+	@uv run python scripts/index_corpus.py --regulation ai_act
+	@echo ""
+	@echo "============================================================"
+	@echo "Local demo ready. In two separate terminals, run:"
+	@echo "  terminal 1: make dev-backend"
+	@echo "  terminal 2: make dev-frontend"
+	@echo "Then open: http://localhost:3000"
+	@echo ""
+	@echo "Tear it down with:  make demo-local-down"
+	@echo "============================================================"
+
+demo-local-down:
+	docker compose -f docker-compose.dev.yml --profile llm down
+
+# On-demand provisioning of the full sovereign stack on OVH. Use ONLY when
+# a live demo or paying mission needs it. The bill starts the moment apply
+# succeeds. Run `make demo-down` to return to zero.
+demo-up:
+	@command -v /opt/homebrew/bin/terraform >/dev/null 2>&1 || command -v terraform >/dev/null 2>&1 || { echo "terraform not installed: brew install hashicorp/tap/terraform"; exit 1; }
+	@test -f .env || { echo "missing .env (required for OVH_* credentials)"; exit 1; }
+	@test -f infra/terraform/environments/prod/main.tfvars || { echo "missing infra/terraform/environments/prod/main.tfvars (cp from .example, fill service_name)"; exit 1; }
+	@set -a; . ./.env; set +a; \
+	  cd infra/terraform && \
+	  $${TERRAFORM:-/opt/homebrew/bin/terraform} init && \
+	  $${TERRAFORM:-/opt/homebrew/bin/terraform} apply -var-file=environments/prod/main.tfvars
+	@echo ""
+	@echo ">> Provisioned. Outputs:"
+	@cd infra/terraform && $${TERRAFORM:-/opt/homebrew/bin/terraform} output
+	@echo ""
+	@echo "Next: enable pgvector + index corpus + apply k8s overlay."
+	@echo "Tear down with:  make demo-down"
+
+demo-down:
+	@set -a; . ./.env; set +a; \
+	  cd infra/terraform && \
+	  $${TERRAFORM:-/opt/homebrew/bin/terraform} destroy -var-file=environments/prod/main.tfvars
+	@echo ">> Destroyed. OVH bill returns to zero on those line items."

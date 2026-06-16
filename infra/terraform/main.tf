@@ -7,16 +7,23 @@
 
 locals {
   name_prefix = "${var.project_name}-${var.environment}"
+
+  # Managed Postgres and Object Storage accept the region group
+  # (e.g. "GRA"), not the specific datacenter code (e.g. "GRA11").
+  # Kapsule wants the datacenter code. Strip the trailing digits.
+  region_group = regex("^[A-Z]+", var.region)
 }
 
 module "postgres" {
   source = "./modules/postgres"
 
   service_name          = var.service_name
-  region                = var.region
+  region                = local.region_group
   name                  = "${local.name_prefix}-pg"
   plan                  = var.postgres_plan
   flavor                = var.postgres_flavor
+  engine_version        = var.postgres_version
+  disk_size             = var.postgres_disk_size
   allowed_ingress_cidrs = var.allowed_ingress_cidrs
 }
 
@@ -36,7 +43,7 @@ module "object_storage" {
   source = "./modules/object_storage"
 
   service_name = var.service_name
-  region       = var.region
+  region       = local.region_group
   container    = "${local.name_prefix}-artifacts"
 }
 

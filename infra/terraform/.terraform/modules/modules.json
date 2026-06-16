@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"gpu_nodepool","Source":"./modules/gpu_nodepool","Dir":"modules/gpu_nodepool"},{"Key":"kapsule","Source":"./modules/kapsule","Dir":"modules/kapsule"},{"Key":"object_storage","Source":"./modules/object_storage","Dir":"modules/object_storage"},{"Key":"postgres","Source":"./modules/postgres","Dir":"modules/postgres"}]}

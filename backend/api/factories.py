@@ -70,6 +70,7 @@ async def build_wired_app(settings: ApiSettings | None = None) -> WiredApp:
         model_id=cfg.llm_model,
         api_key=cfg.llm_api_key,
         timeout_seconds=cfg.llm_timeout_seconds,
+        send_seed=cfg.llm_send_seed,
     )
 
     regulation = AiActRegulation(corpus_loader=loader)

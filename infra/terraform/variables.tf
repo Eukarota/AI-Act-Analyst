@@ -32,15 +32,27 @@ variable "region" {
 }
 
 variable "postgres_plan" {
-  description = "OVH Managed Postgres plan. Confirm pgvector availability before changing."
+  description = "OVH Managed Postgres plan. discovery = cost-minimum tier for the public demo. Confirm pgvector availability if changing tiers."
   type        = string
-  default     = "essential"
+  default     = "discovery"
 }
 
 variable "postgres_flavor" {
-  description = "Compute flavor for the Managed Postgres instance."
+  description = "Compute flavor for the Managed Postgres instance. b3-8 is the cheapest flavor on the discovery plan."
   type        = string
-  default     = "db1-7"
+  default     = "b3-8"
+}
+
+variable "postgres_version" {
+  description = "PostgreSQL major version. 17 = latest stable."
+  type        = string
+  default     = "17"
+}
+
+variable "postgres_disk_size" {
+  description = "Postgres disk size in GB."
+  type        = number
+  default     = 160
 }
 
 variable "kapsule_version" {

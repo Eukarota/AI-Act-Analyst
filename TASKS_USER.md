@@ -142,7 +142,7 @@ The two deployment shapes are codified in ADR 0005 and switchable by env
 var via the `LLMProvider` port. No code change to switch.
 
 **Shape A (LOCKED for the public demo `aiact.ceres.broker`): Mistral La
-Plateforme.** `BOUSSOLE_LLM_URL=https://api.mistral.ai/v1`, model
+Plateforme.** `BOUSSOLE_LLM_URL=https://api.mistral.ai`, model
 `mistral-large-latest`, key in `MISTRAL_API_KEY`. EU-resident, no Cloud
 Act exposure, pay-per-token. Expected cost at portfolio traffic: order
 of magnitude tens of euros per month.

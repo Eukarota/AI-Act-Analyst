@@ -34,6 +34,8 @@ resource "ovh_cloud_project_kube_nodepool" "vllm" {
       labels = {
         "workload" = "vllm"
       }
+      annotations = {}
+      finalizers  = []
     }
     spec {
       taints = [

@@ -53,6 +53,6 @@ component; the public demo runs on Mistral La Plateforme (Shape A).
 
 ## Switching back to Shape A
 
-1. Recreate `boussole-backend-secrets` with `BOUSSOLE_LLM_URL=https://api.mistral.ai/v1`, `BOUSSOLE_LLM_MODEL=mistral-large-latest`, and a populated `MISTRAL_API_KEY`.
+1. Recreate `boussole-backend-secrets` with `BOUSSOLE_LLM_URL=https://api.mistral.ai`, `BOUSSOLE_LLM_MODEL=mistral-large-latest`, and a populated `MISTRAL_API_KEY`.
 2. Remove the `../../components/vllm` line from the overlay and re-apply.
 3. Flip `gpu_enabled = false` in tfvars and re-apply Terraform; the GPU pool tears down and the bill returns to zero on that line.

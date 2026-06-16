@@ -1,10 +1,18 @@
 # Copy to main.tfvars and fill in. Never commit the populated file.
-project_name     = "boussole"
-environment      = "prod"
-service_name     = "REPLACE_WITH_OVH_PUBLIC_CLOUD_PROJECT_ID"
-region           = "GRA11"
-postgres_plan    = "essential"
-postgres_flavor  = "db1-7"
+project_name = "boussole"
+environment  = "prod"
+service_name = "REPLACE_WITH_OVH_PUBLIC_CLOUD_PROJECT_ID"
+region       = "GRA11"
+
+# Managed Postgres on the discovery plan (cost-minimum tier with
+# pgvector). The module auto-strips the "11" to "GRA" since Managed
+# Postgres uses the region group, not the datacenter code.
+postgres_plan      = "discovery"
+postgres_flavor    = "b3-8"
+postgres_version   = "17"
+postgres_disk_size = 160
+
+# Kapsule worker nodes (separate SKU family from Postgres above).
 node_pool_flavor = "b3-8"
 
 backend_image  = "registry.gitlab.com/ceres-broker/boussole/backend:latest"

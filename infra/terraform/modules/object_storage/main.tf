@@ -1,5 +1,16 @@
-# Object Storage container for build / eval artefacts (corpus diffs,
+# Object Storage credentials for build / eval artefacts (corpus diffs,
 # baseline JSONs, gold reports). S3-compatible API.
+#
+# Note: the OVH Terraform provider (0.51) does NOT manage S3 buckets as
+# resources. Container creation happens out of band, either via:
+#   - The OVH manager UI (Public Cloud > Object Storage > Add a container)
+#   - aws-cli against the S3 endpoint:
+#       aws --endpoint-url=https://s3.${region}.io.cloud.ovh.net s3 mb s3://${container}
+# What this module DOES manage:
+#   - An OVH user with the objectstore_operator role
+#   - S3 credentials (access key + secret) bound to that user, exposed
+#     as sensitive outputs for injection into CI / cluster secrets
+# Both are reproducible and rotatable.
 
 terraform {
   required_providers {
@@ -18,10 +29,4 @@ resource "ovh_cloud_project_user" "artifacts" {
 resource "ovh_cloud_project_user_s3_credential" "artifacts" {
   service_name = var.service_name
   user_id      = ovh_cloud_project_user.artifacts.id
-}
-
-resource "ovh_cloud_project_storage" "artifacts" {
-  service_name = var.service_name
-  region_name  = var.region
-  name         = var.container
 }
