@@ -5,7 +5,7 @@
 # `ai-act-analyst`
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![EU AI Act](https://img.shields.io/badge/Regulation-(EU)_2024%2F1689-6366f1)](https://eur-lex.europa.eu/eli/reg/2024/1689/oj)
+[![EU AI Act](<https://img.shields.io/badge/Regulation-(EU)_2024%2F1689-6366f1>)](https://eur-lex.europa.eu/eli/reg/2024/1689/oj)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Next.js 15](https://img.shields.io/badge/Next.js-15-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
 [![Mistral](https://img.shields.io/badge/Mistral-La_Plateforme-FA520F)](https://mistral.ai/)
@@ -18,8 +18,6 @@
   <a href="#français"><strong>Français</strong></a> ·
   <a href="#english"><strong>English</strong></a>
 </p>
-
-<img src="./docs/images/screenshot.png" alt="Screenshot of AI Act Analyst" />
 
 </div>
 
@@ -173,20 +171,20 @@ Three properties the architecture makes true rather than promised:
 
 ### Stack
 
-| Layer | Choice |
-| --- | --- |
-| Model | Mistral La Plateforme (`mistral-large-latest`, EU endpoint) or self-hosted vLLM |
-| Embeddings | `intfloat/multilingual-e5-large` via `sentence-transformers` |
-| Vector store | PostgreSQL 16 + `pgvector` |
-| Re-ranker | `BAAI/bge-reranker-v2-m3` |
-| Orchestration | LangGraph (Pydantic state graph) |
-| Tools | MCP Python SDK (five servers) |
-| Backend | Python 3.11, FastAPI, asyncpg, structlog, Pydantic v2 |
-| Frontend | Next.js 15 (App Router), React 19, Tailwind CSS 4, Framer Motion, Three.js |
-| Observability | OpenTelemetry, Prometheus (`/metrics`), structlog JSON |
-| Infrastructure | OVHcloud Public Cloud, Managed Postgres, Kapsule (managed Kubernetes) |
-| IaC | Terraform |
-| Quality gates | ruff, mypy, pytest |
+| Layer          | Choice                                                                          |
+| -------------- | ------------------------------------------------------------------------------- |
+| Model          | Mistral La Plateforme (`mistral-large-latest`, EU endpoint) or self-hosted vLLM |
+| Embeddings     | `intfloat/multilingual-e5-large` via `sentence-transformers`                    |
+| Vector store   | PostgreSQL 16 + `pgvector`                                                      |
+| Re-ranker      | `BAAI/bge-reranker-v2-m3`                                                       |
+| Orchestration  | LangGraph (Pydantic state graph)                                                |
+| Tools          | MCP Python SDK (five servers)                                                   |
+| Backend        | Python 3.11, FastAPI, asyncpg, structlog, Pydantic v2                           |
+| Frontend       | Next.js 15 (App Router), React 19, Tailwind CSS 4, Framer Motion, Three.js      |
+| Observability  | OpenTelemetry, Prometheus (`/metrics`), structlog JSON                          |
+| Infrastructure | OVHcloud Public Cloud, Managed Postgres, Kapsule (managed Kubernetes)           |
+| IaC            | Terraform                                                                       |
+| Quality gates  | ruff, mypy, pytest                                                              |
 
 ## Installation
 
@@ -228,27 +226,27 @@ Provisioning is intentionally short-lived. Between sessions, cost-to-run is zero
 
 ## API
 
-| Method | Path | Role |
-| --- | --- | --- |
-| POST | `/assess` | Run an assessment, returns the `AssessmentReport`. |
-| GET  | `/trace/{run_id}` | Persisted OTel trace. |
-| GET  | `/health` | Liveness. |
-| GET  | `/ready` | Readiness (run-store + DB). |
-| GET  | `/metrics` | Prometheus 0.0.4 format. |
-| GET  | `/drift` | Rolling distributions (domain, tier). |
+| Method | Path              | Role                                               |
+| ------ | ----------------- | -------------------------------------------------- |
+| POST   | `/assess`         | Run an assessment, returns the `AssessmentReport`. |
+| GET    | `/trace/{run_id}` | Persisted OTel trace.                              |
+| GET    | `/health`         | Liveness.                                          |
+| GET    | `/ready`          | Readiness (run-store + DB).                        |
+| GET    | `/metrics`        | Prometheus 0.0.4 format.                           |
+| GET    | `/drift`          | Rolling distributions (domain, tier).              |
 
 ### Environment variables
 
-| Key | Default | Role |
-| --- | --- | --- |
-| `MISTRAL_API_KEY` (alias `BOUSSOLE_LLM_API_KEY`) | _empty_ | La Plateforme key. Empty => self-hosted vLLM expected. |
-| `BOUSSOLE_LLM_URL` | `http://localhost:11434` | OpenAI-compatible endpoint. In prod: `https://api.mistral.ai` or the in-cluster vLLM service. |
-| `BOUSSOLE_LLM_MODEL` | `mistral:7b-instruct` | Model identifier. In prod: `mistral-large-latest`. |
-| `BOUSSOLE_DATABASE_URL` | `postgresql://boussole:boussole@localhost:5432/boussole` | Postgres DSN (run-store + pgvector). |
-| `BOUSSOLE_USE_IN_MEMORY_STORE` | `false` | `true` for dev without Postgres. |
-| `BOUSSOLE_FIXTURE_CORPUS` | `false` | `true` to load the fixture excerpt + FakeEmbedder (CI, smoke). |
-| `BOUSSOLE_REGULATION` | `ai_act` | Active regulation plugin. |
-| `BOUSSOLE_LOG_LEVEL` | `INFO` | structlog level. |
+| Key                                              | Default                                                  | Role                                                                                          |
+| ------------------------------------------------ | -------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `MISTRAL_API_KEY` (alias `BOUSSOLE_LLM_API_KEY`) | _empty_                                                  | La Plateforme key. Empty => self-hosted vLLM expected.                                        |
+| `BOUSSOLE_LLM_URL`                               | `http://localhost:11434`                                 | OpenAI-compatible endpoint. In prod: `https://api.mistral.ai` or the in-cluster vLLM service. |
+| `BOUSSOLE_LLM_MODEL`                             | `mistral:7b-instruct`                                    | Model identifier. In prod: `mistral-large-latest`.                                            |
+| `BOUSSOLE_DATABASE_URL`                          | `postgresql://boussole:boussole@localhost:5432/boussole` | Postgres DSN (run-store + pgvector).                                                          |
+| `BOUSSOLE_USE_IN_MEMORY_STORE`                   | `false`                                                  | `true` for dev without Postgres.                                                              |
+| `BOUSSOLE_FIXTURE_CORPUS`                        | `false`                                                  | `true` to load the fixture excerpt + FakeEmbedder (CI, smoke).                                |
+| `BOUSSOLE_REGULATION`                            | `ai_act`                                                 | Active regulation plugin.                                                                     |
+| `BOUSSOLE_LOG_LEVEL`                             | `INFO`                                                   | structlog level.                                                                              |
 
 ## Evaluation
 
@@ -280,7 +278,7 @@ The gold set freezes the gates: tier accuracy, citation precision and recall, gr
 
 `ai-act-analyst` prend en entrée la description d'un système d'IA et produit un rapport structuré : niveau de risque au sens du Règlement (UE) 2024/1689, obligations applicables, analyse d'écart contre les contrôles déclarés, squelettes de documentation (annexe IV, articles 50). **Chaque affirmation juridique est ancrée à un passage précis du texte consolidé** (article, paragraphe, annexe, considérant).
 
-Ce n'est pas un avis juridique. Le rapport est cadré comme une pré-évaluation technique destinée à appuyer une revue qualifiée. C'est volontaire : le seul agent crédible auprès d'un service conformité est celui qui *refuse* de produire un verdict.
+Ce n'est pas un avis juridique. Le rapport est cadré comme une pré-évaluation technique destinée à appuyer une revue qualifiée. C'est volontaire : le seul agent crédible auprès d'un service conformité est celui qui _refuse_ de produire un verdict.
 
 ### Pourquoi
 
