@@ -1,12 +1,13 @@
 {
   "fr": {
     "metadata": {
-      "title": "Boussole · Pré-évaluation AI Act",
-      "description": "Pré-évaluation technique d'un système d'IA face au Règlement (UE) 2024/1689. Chaque conclusion est citée; rien n'est inventé."
+      "title": "AI Act Analyst · Pré-évaluation AI Act · Ceres Broker",
+      "description": "Pré-évaluation technique d'un système d'IA face au Règlement (UE) 2024/1689. Chaque conclusion est citée; rien n'est inventé. Par Ceres Broker."
     },
     "nav": {
-      "brand": "Boussole",
+      "brand": "AI Act Analyst",
       "tagline": "Pré-évaluation AI Act",
+      "byCeres": "by Ceres Broker",
       "lang": {
         "fr": "FR",
         "en": "EN"
@@ -14,7 +15,7 @@
     },
     "intake": {
       "heading": "Évaluez un système IA face à l'AI Act",
-      "description": "Décrivez votre système. Boussole identifie la classe de risque, énumère les obligations applicables et cite chaque article concerné. Pas de données personnelles.",
+      "description": "Décrivez votre système. AI Act Analyst identifie la classe de risque, énumère les obligations applicables et cite chaque article concerné. Pas de données personnelles.",
       "placeholder": "Décrivez le système. Plus la description est précise, moins l'agent posera de questions de clarification.",
       "send": "Évaluer",
       "send_running": "Évaluation…",
@@ -209,22 +210,30 @@
       "unknown": "Une erreur inattendue est survenue."
     },
     "footer": {
+      "brand": "Ceres Broker",
+      "tagline": "Ingénierie IA générative souveraine pour organisations régulées.",
+      "contactLabel": "Contact",
+      "legalLabel": "Légal",
+      "parentSite": "ceres.broker",
+      "regulation": "Règlement (UE) 2024/1689",
+      "hostedInEurope": "Site hébergé en Europe",
       "disclaimer": "Pré-évaluation technique. Pas un avis juridique."
     }
   },
   "en": {
     "metadata": {
-      "title": "Boussole · AI Act pre-assessment",
-      "description": "A technical pre-assessment of an AI system against Regulation (EU) 2024/1689. Every claim is cited; nothing is invented."
+      "title": "AI Act Analyst · Ceres Broker",
+      "description": "A technical pre-assessment of an AI system against Regulation (EU) 2024/1689. Every claim is cited; nothing is invented. By Ceres Broker."
     },
     "nav": {
-      "brand": "Boussole",
+      "brand": "AI Act Analyst",
       "tagline": "AI Act pre-assessment",
+      "byCeres": "by Ceres Broker",
       "lang": { "fr": "FR", "en": "EN" }
     },
     "intake": {
       "heading": "Assess an AI system against the AI Act",
-      "description": "Describe your system. Boussole identifies the risk tier, enumerates the applicable obligations, and cites every article. No personal data.",
+      "description": "Describe your system. AI Act Analyst identifies the risk tier, enumerates the applicable obligations, and cites every article. No personal data.",
       "placeholder": "Describe the system. The richer the description, the fewer clarifying questions the agent will ask.",
       "send": "Assess",
       "send_running": "Assessing…",
@@ -418,6 +427,13 @@
       "unknown": "An unexpected error occurred."
     },
     "footer": {
+      "brand": "Ceres Broker",
+      "tagline": "Sovereign generative AI engineering for regulated organisations.",
+      "contactLabel": "Contact",
+      "legalLabel": "Legal",
+      "parentSite": "ceres.broker",
+      "regulation": "Regulation (EU) 2024/1689",
+      "hostedInEurope": "Site hosted in Europe",
       "disclaimer": "Technical pre-assessment. Not legal advice."
     }
   }

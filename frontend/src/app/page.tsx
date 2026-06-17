@@ -3,13 +3,13 @@
 import { useState, useEffect, useRef } from "react";
 
 import type { AssessmentReport } from "@/lib/types";
-import { useTranslation } from "@/lib/language";
 import { postAssess, type AssessPayload } from "@/lib/api";
 import { Nav } from "@/sections/nav";
 import { Intake } from "@/sections/intake";
 import { Report } from "@/sections/report";
 import { TracePanel } from "@/sections/trace-panel";
 import { RagCube } from "@/sections/rag-cube";
+import { Footer } from "@/sections/footer";
 
 export default function Home() {
   const [report, setReport] = useState<AssessmentReport | null>(null);
@@ -78,27 +78,5 @@ export default function Home() {
       )}
       <Footer />
     </main>
-  );
-}
-
-function Footer() {
-  const { t } = useTranslation();
-  return (
-    <footer className="border-t border-white/[0.06] mt-auto">
-      <div className="mx-auto max-w-[1400px] px-6 py-8 text-[12px] text-foreground-dim flex flex-wrap items-center justify-between gap-3">
-        <span>
-          Boussole · {t("nav.tagline")} ·{" "}
-          <a
-            className="underline-offset-4 hover:underline"
-            href="https://eur-lex.europa.eu/eli/reg/2024/1689/oj"
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            Regulation (EU) 2024/1689
-          </a>
-        </span>
-        <span className="text-foreground-dim/70">{t("footer.disclaimer")}</span>
-      </div>
-    </footer>
   );
 }

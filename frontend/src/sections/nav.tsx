@@ -27,7 +27,7 @@ export function Nav() {
                 {t("nav.brand")}
               </span>
               <span className="mt-0.5 text-[11px] tracking-tight text-foreground-dim">
-                {t("nav.tagline")}
+                {t("nav.byCeres")}
               </span>
             </div>
           </Link>
