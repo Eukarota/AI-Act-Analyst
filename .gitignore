@@ -42,3 +42,4 @@ frontend/out/
 # Local docker volumes
 .docker/
 *.pgdata/
+CLAUDE.md
