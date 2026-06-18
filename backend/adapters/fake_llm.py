@@ -29,8 +29,19 @@ class FakeLLM:
         *,
         max_tokens: int = 1024,
         stop: list[str] | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
-        self.calls.append(("complete", {"prompt": prompt, "max_tokens": max_tokens, "stop": stop}))
+        self.calls.append(
+            (
+                "complete",
+                {
+                    "prompt": prompt,
+                    "max_tokens": max_tokens,
+                    "stop": stop,
+                    "json_mode": json_mode,
+                },
+            )
+        )
         text = self._scripted.get(prompt, f"[fake completion for: {prompt[:60]}]")
         return LLMResponse(
             text=text,

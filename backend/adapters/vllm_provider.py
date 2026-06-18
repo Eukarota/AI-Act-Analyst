@@ -36,7 +36,11 @@ import httpx
 
 from backend.ports.llm_provider import LLMResponse, LLMUsage
 
-DEFAULT_TIMEOUT_SECONDS = 60.0
+# 180 s covers large-input attribute extraction (e.g. a 20k-char PDF excerpt
+# fed verbatim into the intake prompt) against mistral-large-latest. The
+# typical small-input call returns in 2-6 s; the long tail is what this
+# guards against. Override per-instance for tighter latency budgets.
+DEFAULT_TIMEOUT_SECONDS = 180.0
 DEFAULT_DETERMINISM_SEED = 7
 DEFAULT_SEND_SEED = False
 
@@ -99,9 +103,14 @@ class SelfHostedVLLM:
         *,
         max_tokens: int = 1024,
         stop: list[str] | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
         return await self._chat_completion(
-            prompt=prompt, max_tokens=max_tokens, temperature=0.0, stop=stop
+            prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=0.0,
+            stop=stop,
+            json_mode=json_mode,
         )
 
     async def creative_complete(
@@ -123,6 +132,7 @@ class SelfHostedVLLM:
         max_tokens: int,
         temperature: float,
         stop: list[str] | None,
+        json_mode: bool = False,
     ) -> LLMResponse:
         client = await self._ensure_client()
         payload: dict[str, Any] = {
@@ -134,8 +144,19 @@ class SelfHostedVLLM:
         }
         if stop:
             payload["stop"] = stop
+        if json_mode:
+            # Mistral La Plateforme and most OpenAI-compatible vLLM servers
+            # honour response_format; servers that ignore it still produce
+            # text we parse defensively with _extract_json.
+            payload["response_format"] = {"type": "json_object"}
         if self.send_seed and self.seed is not None and temperature == 0.0:
             payload["seed"] = self.seed
+        if json_mode:
+            # OpenAI-compatible "JSON mode". Mistral La Plateforme and most
+            # OpenAI-compatible vLLM servers honor this and constrain the
+            # decoder to produce strict, parseable JSON. Servers that do not
+            # know the field silently ignore it.
+            payload["response_format"] = {"type": "json_object"}
 
         try:
             response = await client.post("/v1/chat/completions", json=payload)

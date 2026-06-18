@@ -81,6 +81,19 @@ class ErrorResponse(BaseModel):
     run_id: str | None = None
 
 
+class ExtractResponse(BaseModel):
+    """POST /extract response: plain text extracted from an uploaded file."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+    truncated: bool
+    char_count: int
+    page_count: int | None = None
+    source_filename: str
+    source_media_type: str
+
+
 class DriftResponse(BaseModel):
     """GET /drift response. Rolling input-domain + tier-mix distributions."""
 

@@ -14,13 +14,21 @@
       }
     },
     "intake": {
-      "heading": "Évaluez un système IA face à l'AI Act",
+      "heading": "Décrivez ou déposez vos fichiers sur votre système IA pour les analyser",
       "description": "Décrivez votre système. AI Act Analyst identifie la classe de risque, énumère les obligations applicables et cite chaque article concerné. Pas de données personnelles.",
       "placeholder": "Décrivez le système. Plus la description est précise, moins l'agent posera de questions de clarification.",
       "send": "Évaluer",
       "send_running": "Évaluation…",
       "advanced_open": "Paramètres avancés",
       "advanced_close": "Masquer les paramètres",
+      "upload": {
+        "button": "Joindre un document",
+        "button_title": "Importer un PDF, un .md ou un .txt (5 Mo max, 50 pages max)",
+        "uploading": "Extraction…",
+        "success": "{filename} importé : {chars} caractères extraits.",
+        "success_truncated": "{filename} importé : {chars} caractères extraits, document tronqué.",
+        "empty": "Document vide : aucun texte exploitable n'a été extrait."
+      },
       "notice": "Pré-évaluation technique destinée à appuyer une revue juridique qualifiée. Pas un conseil juridique.",
       "labels": {
         "system_description": "Description du système",
@@ -76,12 +84,24 @@
     },
     "tiers": {
       "prohibited": { "label": "Pratique prohibée", "tone": "danger" },
-      "high_risk_annex_i": { "label": "Haut risque · Annexe I", "tone": "warning" },
-      "high_risk_annex_iii": { "label": "Haut risque · Annexe III", "tone": "warning" },
-      "transparency": { "label": "Risque limité · transparence", "tone": "info" },
+      "high_risk_annex_i": {
+        "label": "Haut risque · Annexe I",
+        "tone": "warning"
+      },
+      "high_risk_annex_iii": {
+        "label": "Haut risque · Annexe III",
+        "tone": "warning"
+      },
+      "transparency": {
+        "label": "Risque limité · transparence",
+        "tone": "info"
+      },
       "minimal": { "label": "Risque minimal", "tone": "success" },
       "gpai": { "label": "Modèle d'usage général (GPAI)", "tone": "info" },
-      "gpai_systemic": { "label": "GPAI · risque systémique", "tone": "warning" },
+      "gpai_systemic": {
+        "label": "GPAI · risque systémique",
+        "tone": "warning"
+      },
       "undetermined": { "label": "Indéterminé", "tone": "muted" }
     },
     "report": {
@@ -91,8 +111,21 @@
         "incomplete_clarification_exhausted": "Clarifications requises",
         "failed": "Évaluation bloquée"
       },
+      "headline": {
+        "prohibited": "Système non conforme : pratique interdite par l'Art. 5",
+        "non_compliant": "Système non conforme : {n} obligation(s) manquante(s)",
+        "partial": "Système partiellement conforme : {n} point(s) à clarifier",
+        "compliant": "Système conforme aux obligations identifiées",
+        "no_declared_controls": "Conformité non démontrée : aucun contrôle déclaré",
+        "minimal": "Aucune obligation impérative : risque minimal",
+        "undetermined": "Classification indéterminée"
+      },
       "grounding_pass": "Contrôle d'ancrage validé",
       "grounding_fail": "Contrôle d'ancrage en échec",
+      "export": {
+        "pdf": "Télécharger PDF",
+        "md": "Télécharger Markdown"
+      },
       "manifest_label": "Manifeste d'exécution",
       "manifest_show": "Voir le manifeste technique",
       "manifest_hide": "Masquer le manifeste",
@@ -239,6 +272,14 @@
       "send_running": "Assessing…",
       "advanced_open": "Advanced parameters",
       "advanced_close": "Hide parameters",
+      "upload": {
+        "button": "Attach a document",
+        "button_title": "Upload a PDF, .md or .txt (5 MB max, 50 pages max)",
+        "uploading": "Extracting…",
+        "success": "{filename} imported: {chars} characters extracted.",
+        "success_truncated": "{filename} imported: {chars} characters extracted, document truncated.",
+        "empty": "Empty document: no usable text was extracted."
+      },
       "notice": "Technical pre-assessment to support qualified legal review. Not legal advice.",
       "labels": {
         "system_description": "System description",
@@ -293,9 +334,18 @@
     },
     "tiers": {
       "prohibited": { "label": "Prohibited practice", "tone": "danger" },
-      "high_risk_annex_i": { "label": "High risk · Annex I", "tone": "warning" },
-      "high_risk_annex_iii": { "label": "High risk · Annex III", "tone": "warning" },
-      "transparency": { "label": "Limited risk · transparency", "tone": "info" },
+      "high_risk_annex_i": {
+        "label": "High risk · Annex I",
+        "tone": "warning"
+      },
+      "high_risk_annex_iii": {
+        "label": "High risk · Annex III",
+        "tone": "warning"
+      },
+      "transparency": {
+        "label": "Limited risk · transparency",
+        "tone": "info"
+      },
       "minimal": { "label": "Minimal risk", "tone": "success" },
       "gpai": { "label": "General-purpose AI model", "tone": "info" },
       "gpai_systemic": { "label": "GPAI · systemic risk", "tone": "warning" },
@@ -308,8 +358,21 @@
         "incomplete_clarification_exhausted": "Clarifications required",
         "failed": "Assessment blocked"
       },
+      "headline": {
+        "prohibited": "Non-compliant: prohibited practice under Art. 5",
+        "non_compliant": "Non-compliant: {n} obligation(s) missing",
+        "partial": "Partially compliant: {n} point(s) to clarify",
+        "compliant": "Compliant with the identified obligations",
+        "no_declared_controls": "Compliance not demonstrated: no controls declared",
+        "minimal": "No binding obligations: minimal risk",
+        "undetermined": "Classification undetermined"
+      },
       "grounding_pass": "Grounding check passed",
       "grounding_fail": "Grounding check failed",
+      "export": {
+        "pdf": "Download PDF",
+        "md": "Download Markdown"
+      },
       "manifest_label": "Run manifest",
       "manifest_show": "Show run manifest",
       "manifest_hide": "Hide run manifest",

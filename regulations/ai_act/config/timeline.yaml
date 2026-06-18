@@ -2,12 +2,20 @@
 #
 # Each date carries a legal source. CLAUDE.md non-negotiables: do not hardcode
 # dates in code, and do not frame deadlines as urgency. These values are
-# subject to ongoing amendment (notably the Digital Omnibus track in 2025/26);
-# treat them as "current applicable date, subject to ongoing amendment".
+# subject to ongoing amendment; treat them as "current applicable date,
+# subject to ongoing amendment" and re-verify against EUR-Lex before relying
+# on them.
+#
+# 2026-06-18 update: integrates the Digital Omnibus provisional agreement of
+# 6 May 2026 (confirmed in Council 13 May 2026), which postpones the
+# high-risk and certain Article 50 application dates. Note that the dates
+# below take legal effect only when the Omnibus is formally adopted and
+# published in the Official Journal; track the OJ publication and reset
+# last_reviewed accordingly.
 
 regulation: "Regulation (EU) 2024/1689"
 celex_id: "32024R1689"
-last_reviewed: "2026-06-08"
+last_reviewed: "2026-06-18"
 
 milestones:
   publication_oj:
@@ -23,28 +31,82 @@ milestones:
   prohibitions_apply:
     date: "2025-02-02"
     source: "Art. 113(a) (Chapter I and Chapter II apply from 2 February 2025)"
-    note: "Prohibited AI practices under Art. 5 become applicable."
+    note: >
+      Prohibited AI practices under Art. 5 became applicable on this date.
+      Unchanged by the Digital Omnibus.
 
   gpai_obligations_apply:
     date: "2025-08-02"
     source: "Art. 113(b) (Chapter V on GPAI applies from 2 August 2025)"
-    note: "General-purpose AI model obligations under Chapter V take effect."
+    note: >
+      General-purpose AI model obligations under Chapter V took effect.
+      Unchanged by the Digital Omnibus.
 
   general_application:
     date: "2026-08-02"
     source: "Art. 113 (general application date)"
-    note: "Most obligations apply, including Annex III high-risk systems."
+    note: >
+      Most institutional, governance, penalty, and reporting provisions
+      apply from this date. The high-risk obligations that previously hung
+      off this date are now postponed (see annex_iii_high_risk and
+      annex_i_high_risk below) under the Digital Omnibus provisional
+      agreement.
 
-  annex_i_high_risk_extension:
-    date: "2027-08-02"
-    source: "Art. 113(c) (extended transition for products covered by Annex I legislation)"
-    note: "High-risk systems that are safety components of products under Annex I legislation."
+  art_50_2_synthetic_content_marking:
+    date: "2026-12-02"
+    source: >
+      Digital Omnibus provisional agreement, 6 May 2026 (Council 13 May
+      2026). Postpones the Art. 50(2) machine-readable marking obligation
+      for synthetic audio, image, video and text content. Takes effect on
+      publication of the Omnibus in the Official Journal.
+    note: >
+      Postponed from 2 August 2026 to 2 December 2026. Six other Article 50
+      obligations apply on the general application date of 2 August 2026.
+
+  annex_iii_high_risk:
+    date: "2027-12-02"
+    source: >
+      Digital Omnibus provisional agreement, 6 May 2026 (Council 13 May
+      2026). Postpones the application date for standalone high-risk AI
+      systems covered by Annex III. Takes effect on publication of the
+      Omnibus in the Official Journal.
+    note: >
+      Standalone high-risk systems (Annex III): Art. 6(2) classification
+      and the associated obligations (Art. 8 to 15, 16, 17, 26, 43, 47, 48,
+      49) now apply from 2 December 2027 instead of 2 August 2026. This is
+      a sixteen-month deferral.
+
+  annex_i_high_risk:
+    date: "2028-08-02"
+    source: >
+      Digital Omnibus provisional agreement, 6 May 2026 (Council 13 May
+      2026). Postpones the application date for high-risk AI systems that
+      are safety components of products covered by Annex I legislation.
+      Takes effect on publication of the Omnibus in the Official Journal.
+    note: >
+      Embedded high-risk systems (Annex I): postponed from 2 August 2027
+      to 2 August 2028. The two-tier high-risk timeline (Annex III earlier
+      than Annex I) is preserved.
 
 amendments_in_flight:
   - name: "Digital Omnibus"
-    status: "in negotiation"
-    last_checked: "2026-06-08"
+    status: "provisional agreement reached 2026-05-06; pending formal adoption and OJ publication"
+    last_checked: "2026-06-18"
     note: >
-      Various provisions of Regulation (EU) 2024/1689 may be amended through
-      the Digital Omnibus simplification package. Treat the dates above as
-      working values and re-verify against EUR-Lex before relying on them.
+      Postpones Annex III to 2027-12-02 and Annex I to 2028-08-02. Adds new
+      Article 5 prohibitions (AI-generated non-consensual intimate imagery,
+      CSAM). Defers Art. 50(2) watermarking to 2026-12-02. Adds a grace
+      period model for enforcement on systems put on the market before the
+      new application dates. The dates in this file reflect the agreement
+      text; they take legal effect only upon OJ publication.
+
+penalties:
+  upper_band_eur:
+    amount: 35000000
+    percent_of_global_turnover: 7
+    source: "Art. 99 (maximum administrative fines)"
+    note: >
+      Up to €35 million or 7% of total worldwide annual turnover for the
+      preceding financial year, whichever is higher, for Art. 5 violations.
+      Other bands apply for breaches of other obligations (Art. 99(4) and
+      99(5)).

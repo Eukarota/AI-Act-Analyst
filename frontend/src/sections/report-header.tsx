@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 import { useTranslation } from "@/lib/language";
-import type { AssessmentReport } from "@/lib/types";
+import type { AssessmentReport, GapFinding, Tier } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { TierPill } from "@/components/tier-pill";
 
@@ -13,20 +13,95 @@ interface Props {
   report: AssessmentReport;
 }
 
+type HeadlineKey =
+  | "prohibited"
+  | "undetermined"
+  | "minimal"
+  | "no_declared_controls"
+  | "compliant"
+  | "partial"
+  | "non_compliant";
+
+type HeadlineTone = "danger" | "warning" | "success" | "info" | "muted";
+
+interface Headline {
+  key: HeadlineKey;
+  tone: HeadlineTone;
+  /** Filled into a `{n}` placeholder where present in the i18n string. */
+  count?: number;
+}
+
+function deriveHeadline(report: AssessmentReport): Headline {
+  const tier: Tier | undefined = report.classification?.tier;
+
+  if (tier === "prohibited") {
+    return { key: "prohibited", tone: "danger" };
+  }
+  if (tier === "minimal") {
+    return { key: "minimal", tone: "success" };
+  }
+  if (!tier || tier === "undetermined") {
+    return { key: "undetermined", tone: "muted" };
+  }
+
+  const gaps: GapFinding[] = report.gaps ?? [];
+  const obligations = report.obligations ?? [];
+
+  // No declared controls = nothing to gap against. Don't claim compliance.
+  if (
+    obligations.length > 0 &&
+    (report.system_profile.declared_controls?.length ?? 0) === 0
+  ) {
+    return { key: "no_declared_controls", tone: "warning" };
+  }
+
+  const missing = gaps.filter((g) => g.status === "missing").length;
+  const partial = gaps.filter((g) => g.status === "partial").length;
+  const unclear = gaps.filter((g) => g.status === "unclear").length;
+
+  if (missing > 0) {
+    return { key: "non_compliant", tone: "danger", count: missing };
+  }
+  if (partial > 0 || unclear > 0) {
+    return { key: "partial", tone: "warning", count: partial + unclear };
+  }
+  return { key: "compliant", tone: "success", count: gaps.length };
+}
+
+const TONE_TO_TEXT_CLASS: Record<HeadlineTone, string> = {
+  danger: "text-[color:var(--danger)]",
+  warning: "text-[color:var(--warning)]",
+  success: "text-[color:var(--success)]",
+  info: "text-foreground",
+  muted: "text-foreground-muted",
+};
+
 export function ReportHeader({ report }: Props) {
   const { t } = useTranslation();
   const [showManifest, setShowManifest] = useState(false);
   const status = t(`report.header_status.${report.status}`);
 
+  const headline = deriveHeadline(report);
+  const headlineText = t(`report.headline.${headline.key}`).replace(
+    "{n}",
+    String(headline.count ?? ""),
+  );
+
   return (
     <div className="rounded-3xl bg-card/60 ring-1 ring-inset ring-white/[0.06] p-8 backdrop-blur-xl">
       <div className="flex flex-wrap items-start justify-between gap-6">
-        <div>
-          <span className="text-[11px] text-foreground-dim">
-            {t("report.header_eyebrow")}
-          </span>
-          <h2 className="mt-2 text-3xl sm:text-4xl font-semibold tracking-tight">
-            {status}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[11px] text-foreground-dim">
+              {t("report.header_eyebrow")}
+            </span>
+            <span className="text-[11px] text-foreground-dim">·</span>
+            <span className="text-[11px] text-foreground-dim">{status}</span>
+          </div>
+          <h2
+            className={`text-3xl sm:text-4xl font-semibold tracking-tight leading-[1.1] ${TONE_TO_TEXT_CLASS[headline.tone]}`}
+          >
+            {headlineText}
           </h2>
           {report.classification && (
             <div className="mt-4">

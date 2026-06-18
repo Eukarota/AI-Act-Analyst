@@ -38,6 +38,17 @@ agent = [
     "langgraph>=0.2",
     "mcp>=1.0",
 ]
+# Report rendering (Markdown + PDF) and PDF intake.
+# WeasyPrint depends on Pango/Cairo/GDK-PixBuf at runtime:
+#   macOS:  brew install pango cairo gdk-pixbuf libffi
+#   Debian: apt-get install libpango-1.0-0 libpangoft2-1.0-0 libffi-dev
+# Without these, importing weasyprint will fail and the /assess/{id}/export.pdf
+# endpoint will surface a typed 503; the .md endpoint stays available.
+report = [
+    "pypdf>=4.3",
+    "markdown>=3.6",
+    "weasyprint>=62.3",
+]
 dev = [
     "ruff>=0.5",
     "mypy>=1.10",

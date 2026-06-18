@@ -2,9 +2,15 @@
 
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Paperclip, Loader2 } from "lucide-react";
 
 import { useTranslation } from "@/lib/language";
-import { postAssess, ApiError, type AssessPayload } from "@/lib/api";
+import {
+  postAssess,
+  postExtract,
+  ApiError,
+  type AssessPayload,
+} from "@/lib/api";
 import type { ActorRole, AssessmentReport } from "@/lib/types";
 
 import { Button } from "@/components/ui/button";
@@ -28,7 +34,12 @@ const ACTOR_ROLES: (ActorRole | "")[] = [
   "authorised_representative",
 ];
 
-const SAMPLE_KEYS = ["recruitment", "translator", "chatbot", "social_scoring"] as const;
+const SAMPLE_KEYS = [
+  "recruitment",
+  "translator",
+  "chatbot",
+  "social_scoring",
+] as const;
 
 interface Props {
   onResult: (report: AssessmentReport, payload: AssessPayload) => void;
@@ -42,7 +53,45 @@ export function Intake({ onResult }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadHint, setUploadHint] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleFile = async (file: File) => {
+    setError(null);
+    setUploadHint(null);
+    setUploading(true);
+    try {
+      const result = await postExtract(file);
+      if (result.text.trim().length === 0) {
+        setError(t("intake.upload.empty"));
+        return;
+      }
+      setSystemDescription(result.text);
+      const hintTemplate = result.truncated
+        ? t("intake.upload.success_truncated")
+        : t("intake.upload.success");
+      setUploadHint(
+        hintTemplate
+          .replace("{filename}", file.name)
+          .replace("{chars}", String(result.char_count))
+          .replace("{pages}", String(result.page_count ?? 0)),
+      );
+      textareaRef.current?.focus();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message || `Upload failed (${err.status})`);
+      } else if (err instanceof TypeError) {
+        setError(t("errors.network"));
+      } else {
+        setError(t("errors.unknown"));
+      }
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const loadSample = (key: (typeof SAMPLE_KEYS)[number]) => {
     const sample = raw<Sample>(`samples.${key}`);
@@ -89,19 +138,21 @@ export function Intake({ onResult }: Props) {
     }
   };
 
-  const actorOptions = raw<Record<string, string>>("intake.labels.actor_role_options") ?? {};
+  const actorOptions =
+    raw<Record<string, string>>("intake.labels.actor_role_options") ?? {};
 
   return (
     <form onSubmit={submit} className="space-y-6">
       <div className="text-center space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{t("intake.heading")}</h1>
-        <p className="text-foreground-muted max-w-xl mx-auto leading-relaxed text-[15px]">
-          {t("intake.description")}
-        </p>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+          {t("intake.heading")}
+        </h1>
       </div>
 
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <span className="text-[12px] text-foreground-dim">{t("intake.samples.label")}</span>
+        <span className="text-[12px] text-foreground-dim">
+          {t("intake.samples.label")}
+        </span>
         {SAMPLE_KEYS.map((k) => (
           <button
             key={k}
@@ -115,7 +166,7 @@ export function Intake({ onResult }: Props) {
         ))}
       </div>
 
-      <div className="relative rounded-3xl bg-card/60 ring-1 ring-inset ring-white/[0.08] backdrop-blur-xl shadow-2xl shadow-black/20">
+      <div className="glow-focus relative rounded-3xl bg-card">
         <Textarea
           ref={textareaRef}
           rows={5}
@@ -126,19 +177,60 @@ export function Intake({ onResult }: Props) {
           className="w-full resize-none bg-transparent border-0 ring-0 focus:ring-0 focus:outline-none px-5 pt-5 pb-16 text-[15px] leading-relaxed placeholder:text-foreground-dim"
         />
         <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            disabled={submitting}
-            className="rounded-full px-3 py-1.5 text-[12px] text-foreground-dim hover:text-foreground hover:bg-white/[0.04] transition-colors"
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              accept="application/pdf,text/plain,.md,.markdown,.txt"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) void handleFile(f);
+              }}
+              disabled={submitting || uploading}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={submitting || uploading}
+              title={t("intake.upload.button_title")}
+              aria-label={t("intake.upload.button_title")}
+              className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] text-foreground-dim hover:text-foreground hover:bg-white/[0.04] transition-colors disabled:opacity-50"
+            >
+              {uploading ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Paperclip className="h-3.5 w-3.5" />
+              )}
+              <span>
+                {uploading
+                  ? t("intake.upload.uploading")
+                  : t("intake.upload.button")}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              disabled={submitting}
+              className="rounded-full px-3 py-1.5 text-[12px] text-foreground-dim hover:text-foreground hover:bg-white/[0.04] transition-colors"
+            >
+              {showAdvanced
+                ? t("intake.advanced_close")
+                : t("intake.advanced_open")}
+            </button>
+          </div>
+          <Button
+            type="submit"
+            disabled={submitting || systemDescription.trim().length < 10}
           >
-            {showAdvanced ? t("intake.advanced_close") : t("intake.advanced_open")}
-          </button>
-          <Button type="submit" disabled={submitting || systemDescription.trim().length < 10}>
             {submitting ? t("intake.send_running") : t("intake.send")}
           </Button>
         </div>
       </div>
+
+      {uploadHint && (
+        <p className="text-[11px] text-foreground-dim">{uploadHint}</p>
+      )}
 
       <AnimatePresence>
         {showAdvanced && (
@@ -151,7 +243,9 @@ export function Intake({ onResult }: Props) {
           >
             <div className="space-y-5 rounded-2xl bg-card/40 ring-1 ring-inset ring-white/[0.06] p-5">
               <div className="space-y-2">
-                <Label htmlFor="actor_role">{t("intake.labels.actor_role")}</Label>
+                <Label htmlFor="actor_role">
+                  {t("intake.labels.actor_role")}
+                </Label>
                 <Select
                   id="actor_role"
                   value={actorRole}
@@ -164,10 +258,14 @@ export function Intake({ onResult }: Props) {
                     </option>
                   ))}
                 </Select>
-                <p className="text-[12px] text-foreground-dim">{t("intake.labels.actor_role_help")}</p>
+                <p className="text-[12px] text-foreground-dim">
+                  {t("intake.labels.actor_role_help")}
+                </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="declared_controls">{t("intake.labels.declared_controls")}</Label>
+                <Label htmlFor="declared_controls">
+                  {t("intake.labels.declared_controls")}
+                </Label>
                 <Textarea
                   id="declared_controls"
                   rows={4}
@@ -176,7 +274,9 @@ export function Intake({ onResult }: Props) {
                   onChange={(e) => setDeclaredControls(e.target.value)}
                   disabled={submitting}
                 />
-                <p className="text-[12px] text-foreground-dim">{t("intake.labels.declared_controls_help")}</p>
+                <p className="text-[12px] text-foreground-dim">
+                  {t("intake.labels.declared_controls_help")}
+                </p>
               </div>
             </div>
           </motion.div>

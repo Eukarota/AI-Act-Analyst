@@ -47,8 +47,15 @@ class LLMProvider(Protocol):
         *,
         max_tokens: int = 1024,
         stop: list[str] | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
-        """Deterministic completion (temperature=0)."""
+        """Deterministic completion (temperature=0).
+
+        json_mode=True requests strict JSON output from providers that
+        support it (e.g. Mistral La Plateforme via response_format). When
+        the backend does not implement that flag, the call falls back to
+        a plain completion; callers should still parse defensively.
+        """
         ...
 
     async def creative_complete(

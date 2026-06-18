@@ -22,10 +22,14 @@ Le marché français pose trois contraintes simultanées :
 - **Auditabilité**. La décision de classification doit être
   reproductible et justifiable, article par article. Une réponse "le
   modèle pense que..." n'est pas une trace de conformité.
-- **Réalisme du calendrier**. L'AI Act entre en application principale
-  le 2 août 2026. Les dates précises font l'objet d'amendements
-  (Digital Omnibus). Toute date inscrite en dur dans le code est
-  fausse le jour suivant.
+- **Réalisme du calendrier**. L'AI Act entre en application par
+  paliers : dispositions générales le 2 août 2026, obligations « haut
+  risque » autonomes (Annexe III) repoussées au 2 décembre 2027 et
+  embarquées (Annexe I) au 2 août 2028 par l'accord politique provisoire
+  du Digital Omnibus du 6 mai 2026. Ces dates restent susceptibles
+  d'amendement jusqu'à la publication au JOUE. Toute date inscrite en
+  dur dans le code est fausse le jour suivant ; les dates sont lues
+  depuis `regulations/ai_act/config/timeline.yaml`.
 
 Boussole adresse ces trois contraintes simultanément.
 

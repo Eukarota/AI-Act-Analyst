@@ -16,6 +16,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
+from backend.adapters.vllm_provider import LLMProviderError
 from backend.agent.dependencies import AgentDependencies
 from backend.agent.errors import LowExtractionConfidence, ModelError
 from backend.agent.nodes._common import (
@@ -101,6 +102,11 @@ async def intake_node(state: AgentState, *, deps: AgentDependencies) -> dict[str
             )
         except AttributeExtractionError as exc:
             raise LowExtractionConfidence(str(exc)) from exc
+        except LLMProviderError as exc:
+            # Upstream HTTP error from Mistral / vLLM (4xx, 5xx, malformed
+            # body, no choices). Surface as a typed ModelError so the route
+            # returns 422 with a structured failure instead of 500.
+            raise ModelError(f"intake LLM call failed: {exc}") from exc
         except (TimeoutError, OSError) as exc:
             raise ModelError(f"intake LLM call failed: {exc}") from exc
 

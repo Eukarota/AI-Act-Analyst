@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Download, FileText } from "lucide-react";
 
 import { useTranslation } from "@/lib/language";
 import type { AssessmentReport } from "@/lib/types";
+import { assessExportUrl } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ReportHeader } from "@/sections/report-header";
 import { ClassificationCard } from "@/sections/classification-card";
@@ -30,13 +32,30 @@ export function Report({ report, onReset, onContinueWithAnswers }: Props) {
   const { t } = useTranslation();
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[12px] text-foreground-dim italic max-w-2xl leading-relaxed">
-          &ldquo;{report.system_profile.description}&rdquo;
-        </p>
-        <Button type="button" variant="subtle" size="sm" onClick={onReset}>
-          {t("intake.reset")}
-        </Button>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <a
+            href={assessExportUrl(report.run_id, "pdf")}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1.5 text-[12px] text-foreground-muted ring-1 ring-inset ring-white/[0.06] hover:bg-white/[0.08] hover:text-foreground transition-colors"
+          >
+            <Download className="h-3.5 w-3.5" />
+            {t("report.export.pdf")}
+          </a>
+          <a
+            href={assessExportUrl(report.run_id, "md")}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.04] px-3 py-1.5 text-[12px] text-foreground-muted ring-1 ring-inset ring-white/[0.06] hover:bg-white/[0.08] hover:text-foreground transition-colors"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            {t("report.export.md")}
+          </a>
+          <Button type="button" variant="subtle" size="sm" onClick={onReset}>
+            {t("intake.reset")}
+          </Button>
+        </div>
       </div>
 
       <motion.div {...fade}>
@@ -57,7 +76,10 @@ export function Report({ report, onReset, onContinueWithAnswers }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-2">
         {report.classification && (
-          <motion.div {...fade} transition={{ ...fade.transition, delay: 0.15 }}>
+          <motion.div
+            {...fade}
+            transition={{ ...fade.transition, delay: 0.15 }}
+          >
             <ClassificationCard classification={report.classification} />
           </motion.div>
         )}

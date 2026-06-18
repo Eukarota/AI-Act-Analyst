@@ -27,7 +27,12 @@ class AgentBudgets:
     """Bounded-execution caps, per CLAUDE.md section 12.3."""
 
     clarify_iterations: int = 3
-    node_timeout_seconds: float = 60.0
+    # Must be >= the LLM HTTP timeout (DEFAULT_TIMEOUT_SECONDS in
+    # vllm_provider) so a slow upstream completion surfaces as an
+    # LLMProviderError, not a node-timeout TimeoutError, and so the
+    # error path stays clean. Currently 180s; tune down once we add
+    # streaming or chunked extraction.
+    node_timeout_seconds: float = 180.0
     tool_call_budget: int = 50
 
 

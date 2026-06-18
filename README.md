@@ -38,7 +38,7 @@
 
 ## What and why
 
-The EU AI Act (Regulation (EU) 2024/1689) starts to bite from **2 August 2026**, with fines up to **€35M**. Most teams shipping AI today do not know which tier they fall under, which articles apply, or what documentation they owe. The standard advice "ask a lawyer" is correct but does not scale.
+The EU AI Act (Regulation (EU) 2024/1689) sets a staggered application schedule: Article 5 prohibitions have been applicable since 2 February 2025, GPAI obligations since 2 August 2025, and general institutional provisions from 2 August 2026. Under the Digital Omnibus provisional agreement of 6 May 2026, standalone high-risk obligations (Annex III) are postponed to **2 December 2027** and embedded high-risk obligations (Annex I) to **2 August 2028**. Maximum fines reach **€35M or 7% of worldwide annual turnover** (Art. 99). Most teams shipping AI today still do not know which tier they fall under, which articles apply, or what documentation they owe. "Ask a lawyer" is correct advice that does not scale.
 
 `ai-act-analyst` takes the description of an AI system and returns a structured, source-cited **pre-assessment**: risk tier under the Act, applicable obligations, gap analysis against declared controls, drafted documentation skeletons (Annex IV, Article 50). **Every legal claim points to a specific passage of the consolidated text** (article, paragraph, annex, or recital).
 
@@ -282,7 +282,7 @@ Ce n'est pas un avis juridique. Le rapport est cadré comme une pré-évaluation
 
 ### Pourquoi
 
-L'AI Act entre en application progressive jusqu'au **2 août 2026**, avec des amendes jusqu'à **35 M€**. La plupart des équipes qui déploient des systèmes d'IA aujourd'hui ne savent pas dans quel tier elles tombent, quels articles s'appliquent, ni quelle documentation elles doivent produire. « Demande à un avocat » est juste mais ne passe pas à l'échelle.
+Le Règlement (UE) 2024/1689 entre en application par paliers : les pratiques prohibées (Art. 5) sont applicables depuis le 2 février 2025, les obligations GPAI depuis le 2 août 2025, et les dispositions institutionnelles générales depuis le 2 août 2026. L'accord politique provisoire du Digital Omnibus du 6 mai 2026 reporte les obligations « haut risque » autonomes (Annexe III) au **2 décembre 2027** et les obligations « haut risque » embarquées (Annexe I) au **2 août 2028**. Les amendes maximales atteignent **35 M€ ou 7 % du chiffre d'affaires mondial annuel** (Art. 99). La plupart des équipes qui déploient des systèmes d'IA aujourd'hui ne savent pas dans quel tier elles tombent, quels articles s'appliquent, ni quelle documentation elles doivent produire. « Demander à un avocat » reste juste, mais ne passe pas à l'échelle.
 
 Trois contraintes de conception qui distinguent ce projet d'un chatbot :
 

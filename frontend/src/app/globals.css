@@ -101,4 +101,27 @@
     scrollbar-width: thin;
     scrollbar-color: var(--border-strong) transparent;
   }
+
+  /* glow-focus: a colored glow that radiates outwards from the card. Uses
+     stacked box-shadows (no pseudo-element, no z-index tricks) so the glow
+     bloom always sits OUTSIDE the card and stays visible on top of the
+     page background, regardless of stacking context. Two-tone (indigo +
+     cyan) at rest, intensifies and tightens up a violet ring on focus.
+     Black inner shadow keeps the card grounded. */
+  .glow-focus {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 8px 24px -8px rgba(0, 0, 0, 0.6),
+      0 0 60px -10px rgba(99, 102, 241, 0.45),
+      0 0 100px -20px rgba(6, 182, 212, 0.35);
+    transition: box-shadow 450ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .glow-focus:focus-within {
+    box-shadow:
+      0 0 0 1px rgba(167, 139, 250, 0.25),
+      0 8px 28px -6px rgba(0, 0, 0, 0.55),
+      0 0 80px -15px rgba(99, 102, 241, 0.5),
+      0 0 140px -25px rgba(6, 182, 212, 0.35),
+      0 0 50px -15px rgba(240, 171, 252, 0.2);
+  }
 }

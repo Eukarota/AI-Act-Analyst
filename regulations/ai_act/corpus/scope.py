@@ -54,6 +54,20 @@ _ANNEX_SCOPES: dict[str, str] = {
     "XII": "gpai_documentation",
 }
 
+# Paragraphs that sit inside a normally-scoped article but are non-operational
+# (carve-outs, "without prejudice" clauses, Commission powers, codes of
+# practice, transitional provisions). They stay in the corpus and remain
+# searchable via a global pass, but scoped retrieval skips them because they
+# add noise to the report: they reference duties without imposing any.
+_NON_OPERATIONAL_PARAGRAPHS: set[tuple[str, str]] = {
+    # Art. 50: paragraphs 1-4 are the operational transparency duties.
+    # Paragraphs 5, 6 and 7 are without-prejudice / codes of practice /
+    # AI Office encouragement, none of which compliance teams owe.
+    ("50", "5"),
+    ("50", "6"),
+    ("50", "7"),
+}
+
 
 def scope_for_citation(citation: Citation) -> str | None:
     """
@@ -64,6 +78,11 @@ def scope_for_citation(citation: Citation) -> str | None:
     recital->article map at query time, not by direct scope filter.
     """
     if citation.article and citation.article in _ARTICLE_SCOPES:
+        if (
+            citation.paragraph
+            and (citation.article, citation.paragraph) in _NON_OPERATIONAL_PARAGRAPHS
+        ):
+            return None
         return _ARTICLE_SCOPES[citation.article]
     if citation.annex_ref and citation.annex_ref in _ANNEX_SCOPES:
         return _ANNEX_SCOPES[citation.annex_ref]

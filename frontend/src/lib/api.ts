@@ -42,6 +42,36 @@ export async function postAssess(payload: AssessPayload): Promise<AssessResponse
   return body as AssessResponse;
 }
 
+export interface ExtractedFile {
+  text: string;
+  truncated: boolean;
+  char_count: number;
+  page_count: number | null;
+  source_filename: string;
+  source_media_type: string;
+}
+
+export async function postExtract(file: File): Promise<ExtractedFile> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/extract", { method: "POST", body: form });
+  const body = res.headers.get("content-type")?.includes("application/json")
+    ? await res.json()
+    : await res.text();
+  if (!res.ok) {
+    const message =
+      typeof body === "object" && body && "detail" in body
+        ? (body as { detail: { message?: string } }).detail.message ?? "Upload failed"
+        : `POST /extract failed (${res.status})`;
+    throw new ApiError(message, res.status, body);
+  }
+  return body as ExtractedFile;
+}
+
+export function assessExportUrl(runId: string, format: "md" | "pdf"): string {
+  return `/api/assess/${encodeURIComponent(runId)}/export.${format}`;
+}
+
 export function citationToShort(c: {
   article: string | null;
   paragraph: string | null;
